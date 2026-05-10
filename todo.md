@@ -13,13 +13,15 @@
 - [x] Implementar controle de acesso por perfis (admin, gerente, colaborador) (procedures tRPC)
 
 ## Fase 3: Cadastros Básicos
-- [ ] Implementar CRUD de clientes (CPF/CNPJ, endereço, contato, histórico)
-- [ ] Implementar CRUD de produtos/serviços (preço, SKU, estoque, categoria)
-- [ ] Implementar CRUD de profissionais/mão de obra (valor hora, comissão)
-- [ ] Implementar CRUD de fornecedores
+- [x] Implementar CRUD de clientes (CPF/CNPJ, endereço, contato) - UI + procedures (sem histórico)
+- [ ] Implementar CRUD de produtos/serviços (preço, SKU, estoque, categoria) - UI
+- [ ] Implementar CRUD de profissionais/mão de obra (valor hora, comissão) - UI
+- [ ] Implementar CRUD de fornecedores - UI
 
 ## Fase 4: Orçamentos e Faturas
-- [ ] Implementar criação de orçamentos com seleção de itens
+- [x] Implementar UI de orçamentos com listagem (empresa ativa, sem placeholders)
+- [x] Implementar UI de faturas com listagem (empresa ativa, sem placeholders)
+- [ ] Implementar criação de orçamentos com seleção de itens (procedures + UI)
 - [ ] Implementar conversão automática de orçamento em fatura
 - [ ] Implementar numeração sequencial automática (ORC-001, FAT-001)
 - [ ] Implementar controle de status (Rascunho, Enviado, Aprovado, Pago, etc.)

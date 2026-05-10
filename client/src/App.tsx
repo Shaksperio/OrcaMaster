@@ -4,9 +4,13 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { CompanyProvider } from "./contexts/CompanyContext";
 import { useAuth } from "./_core/hooks/useAuth";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import Quotations from "./pages/Quotations";
+import Invoices from "./pages/Invoices";
+import Customers from "./pages/Customers";
 import { Loader2 } from "lucide-react";
 
 function Router() {
@@ -27,9 +31,9 @@ function Router() {
   return (
     <Switch>
       <Route path={"/dashboard"} component={Dashboard} />
-      <Route path={"/quotations"} component={() => <div>Quotations Page</div>} />
-      <Route path={"/invoices"} component={() => <div>Invoices Page</div>} />
-      <Route path={"/customers"} component={() => <div>Customers Page</div>} />
+      <Route path={"/quotations"} component={Quotations} />
+      <Route path={"/invoices"} component={Invoices} />
+      <Route path={"/customers"} component={Customers} />
       <Route path={"/products"} component={() => <div>Products Page</div>} />
       <Route path={"/professionals"} component={() => <div>Professionals Page</div>} />
       <Route path={"/404"} component={NotFound} />
@@ -48,10 +52,12 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light">
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
+        <CompanyProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+          </TooltipProvider>
+        </CompanyProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );
