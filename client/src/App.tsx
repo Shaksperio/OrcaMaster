@@ -11,6 +11,8 @@ import Dashboard from "./pages/Dashboard";
 import Quotations from "./pages/Quotations";
 import Invoices from "./pages/Invoices";
 import Customers from "./pages/Customers";
+import Products from "./pages/Products";
+import Professionals from "./pages/Professionals";
 import { Loader2 } from "lucide-react";
 
 function Router() {
@@ -34,8 +36,8 @@ function Router() {
       <Route path={"/quotations"} component={Quotations} />
       <Route path={"/invoices"} component={Invoices} />
       <Route path={"/customers"} component={Customers} />
-      <Route path={"/products"} component={() => <div>Products Page</div>} />
-      <Route path={"/professionals"} component={() => <div>Professionals Page</div>} />
+      <Route path={"/products"} component={Products} />
+      <Route path={"/professionals"} component={Professionals} />
       <Route path={"/404"} component={NotFound} />
       {/* Redirect to dashboard */}
       <Route path={"/"} component={() => {

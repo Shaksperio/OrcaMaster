@@ -14,8 +14,8 @@
 
 ## Fase 3: Cadastros Básicos
 - [x] Implementar CRUD de clientes (CPF/CNPJ, endereço, contato) - UI + procedures (sem histórico)
-- [ ] Implementar CRUD de produtos/serviços (preço, SKU, estoque, categoria) - UI
-- [ ] Implementar CRUD de profissionais/mão de obra (valor hora, comissão) - UI
+- [x] Implementar CRUD de produtos/serviços (preço, SKU, estoque, categoria) - UI + procedures
+- [x] Implementar CRUD de profissionais/mão de obra (valor hora, comissão) - UI + procedures
 - [ ] Implementar CRUD de fornecedores - UI
 
 ## Fase 4: Orçamentos e Faturas
@@ -30,8 +30,10 @@
 - [ ] Implementar histórico de versões
 
 ## Fase 5: Geração de PDF e QR Code
+- [ ] Instalar biblioteca de PDF (pdfkit ou similar)
 - [ ] Implementar geração de PDF com layout customizável
 - [ ] Implementar geração de QR Code embutido no PDF
+- [ ] Implementar download de PDF no cliente
 - [ ] Implementar templates de layout (minimalista, clássico, técnico)
 - [ ] Implementar personalização de temas de cores
 - [ ] Implementar upload de logo e marca d'água
