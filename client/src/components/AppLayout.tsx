@@ -72,7 +72,13 @@ export function AppLayout({ children }: AppLayoutProps) {
 
       {/* User Section */}
       <div className="p-4 border-t border-slate-200 space-y-2">
-        <button className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors">
+        <button 
+          onClick={() => {
+            navigate("/settings");
+            setIsMobileMenuOpen(false);
+          }}
+          className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors"
+        >
           <Settings className="w-5 h-5" />
           <span className="text-sm">Configurações</span>
         </button>

@@ -13,10 +13,22 @@ import Invoices from "./pages/Invoices";
 import Customers from "./pages/Customers";
 import Products from "./pages/Products";
 import Professionals from "./pages/Professionals";
+import Settings from "./pages/Settings";
+import PublicValidation from "./pages/PublicValidation";
 import { Loader2 } from "lucide-react";
 
 function Router() {
   const { isAuthenticated, loading } = useAuth();
+
+  // Public routes (no auth required)
+  const publicRoutes = (
+    <Switch>
+      <Route path={"/validate/:number"} component={PublicValidation} />
+      <Route path={"/404"} component={NotFound} />
+      {/* Fallback for public routes */}
+      <Route component={NotFound} />
+    </Switch>
+  );
 
   if (loading) {
     return (
@@ -24,6 +36,12 @@ function Router() {
         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
       </div>
     );
+  }
+
+  // Check if current path is public
+  const currentPath = window.location.pathname;
+  if (currentPath.startsWith("/validate")) {
+    return publicRoutes;
   }
 
   if (!isAuthenticated) {
@@ -38,6 +56,7 @@ function Router() {
       <Route path={"/customers"} component={Customers} />
       <Route path={"/products"} component={Products} />
       <Route path={"/professionals"} component={Professionals} />
+      <Route path={"/settings"} component={Settings} />
       <Route path={"/404"} component={NotFound} />
       {/* Redirect to dashboard */}
       <Route path={"/"} component={() => {

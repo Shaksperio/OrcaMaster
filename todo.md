@@ -30,13 +30,13 @@
 - [ ] Implementar histórico de versões
 
 ## Fase 5: Geração de PDF e QR Code
-- [ ] Instalar biblioteca de PDF (pdfkit ou similar)
-- [ ] Implementar geração de PDF com layout customizável
-- [ ] Implementar geração de QR Code embutido no PDF
-- [ ] Implementar download de PDF no cliente
-- [ ] Implementar templates de layout (minimalista, clássico, técnico)
-- [ ] Implementar personalização de temas de cores
-- [ ] Implementar upload de logo e marca d'água
+- [x] Instalar biblioteca de PDF (pdfkit) e QR Code
+- [x] Implementar geração de PDF com layout customizável (server/pdf-generator.ts)
+- [x] Implementar geração de QR Code embutido no PDF
+- [ ] Implementar download de PDF no cliente (botão nas páginas)
+- [x] Implementar página de configurações com temas (UI)
+- [x] Implementar personalização de temas de cores (UI)
+- [ ] Implementar upload de logo e marca d'água (backend)
 - [ ] Implementar campos personalizados nos documentos
 
 ## Fase 6: Gestão Financeira e Relatórios
