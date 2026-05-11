@@ -21,13 +21,13 @@
 ## Fase 4: Orçamentos e Faturas
 - [x] Implementar UI de orçamentos com listagem (empresa ativa, sem placeholders)
 - [x] Implementar UI de faturas com listagem (empresa ativa, sem placeholders)
-- [ ] Implementar criação de orçamentos com seleção de itens (procedures + UI)
-- [ ] Implementar conversão automática de orçamento em fatura
-- [ ] Implementar numeração sequencial automática (ORC-001, FAT-001)
-- [ ] Implementar controle de status (Rascunho, Enviado, Aprovado, Pago, etc.)
-- [ ] Implementar validade de orçamento com alertas
-- [ ] Implementar duplicação de documentos
-- [ ] Implementar histórico de versões
+- [ ] Implementar criação de orçamentos com seleção de itens (procedures + UI) - PRIORIDADE ALTA
+- [ ] Implementar numeração sequencial automática (ORC-001, FAT-001) - PRIORIDADE ALTA
+- [ ] Implementar controle de status (Rascunho, Enviado, Aprovado, Pago, etc.) - PRIORIDADE ALTA
+- [ ] Implementar conversão automática de orçamento em fatura - PRIORIDADE MÉDIA
+- [ ] Implementar validade de orçamento com alertas - PRIORIDADE MÉDIA
+- [ ] Implementar duplicação de documentos - PRIORIDADE BAIXA
+- [ ] Implementar histórico de versões - PRIORIDADE BAIXA
 
 ## Fase 5: Geração de PDF e QR Code
 - [x] Instalar biblioteca de PDF (pdfkit) e QR Code
@@ -36,6 +36,7 @@
 - [ ] Implementar download de PDF no cliente (botão nas páginas)
 - [x] Implementar página de configurações com temas (UI)
 - [x] Implementar personalização de temas de cores (UI)
+- [x] Implementar página pública de validação via QR Code
 - [ ] Implementar upload de logo e marca d'água (backend)
 - [ ] Implementar campos personalizados nos documentos
 
