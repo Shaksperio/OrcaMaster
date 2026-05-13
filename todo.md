@@ -108,3 +108,14 @@
 - [x] Implementar QR Code PIX no PDF e preview
 - [x] Atualizar listagem de orçamentos com ações (preview, PDF, status)
 - [x] Testar compilação e funcionalidade
+
+## Fase 5 - Sincronização Firebase Realtime Database
+- [x] Instalar firebase-admin
+- [x] Criar módulo de conexão Firebase (server/firebase.ts)
+- [x] Criar camada de sincronização MySQL → Firebase (server/firebase-sync.ts)
+- [x] Integrar sync nos procedures de escrita (create/update/delete)
+- [x] Testar sincronização e compilação
+- [x] Validar credenciais Firebase Admin (private key PEM) e confirmar conexão
+- [x] Integrar sync nos writes de invoices (create/update status)
+- [x] Adicionar teste de sincronização Firebase (write/read/remove real confirmado)
+- [ ] Push para GitHub

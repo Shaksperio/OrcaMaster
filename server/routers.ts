@@ -5,6 +5,7 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
 import { TRPCError } from "@trpc/server";
+import { syncToFirebase } from "./firebase-sync";
 import { eq, and } from "drizzle-orm";
 import { companyMembers, companies } from "../drizzle/schema";
 
@@ -97,6 +98,9 @@ export const appRouter = router({
           userId: ctx.user.id,
           ...input,
         });
+        // Sync to Firebase
+        const companyId = (company as any).insertId || (company as any).id;
+        if (companyId) syncToFirebase("company", companyId, { ...input, userId: ctx.user.id, id: companyId });
         return company;
       }),
 
@@ -122,7 +126,10 @@ export const appRouter = router({
         }
         const { id, ...updateData } = input;
         await db.updateCompany(id, updateData);
-        return db.getCompanyById(id);
+        const updated = await db.getCompanyById(id);
+        // Sync to Firebase
+        if (updated) syncToFirebase("company", id, updated);
+        return updated;
       }),
 
     addMember: protectedProcedure
@@ -176,7 +183,11 @@ export const appRouter = router({
       .mutation(async ({ input, ctx }) => {
         const { isOwner, member } = await checkCompanyAccess(ctx.user.id, input.companyId);
         // Colaboradores podem criar clientes
-        return db.createClient(input);
+        const client = await db.createClient(input);
+        // Sync to Firebase
+        const clientId = (client as any).insertId || (client as any).id;
+        if (clientId) syncToFirebase("client", clientId, input, { companyId: input.companyId });
+        return client;
       }),
   }),
 
@@ -207,7 +218,7 @@ export const appRouter = router({
           throw new TRPCError({ code: "FORBIDDEN" });
         }
         const price = typeof input.price === "string" ? parseFloat(input.price) : input.price;
-        return db.createProduct({
+        const product = await db.createProduct({
           companyId: input.companyId,
           name: input.name,
           description: input.description,
@@ -217,6 +228,10 @@ export const appRouter = router({
           unit: input.unit,
           stock: input.stock,
         });
+        // Sync to Firebase
+        const productId = (product as any).insertId || (product as any).id;
+        if (productId) syncToFirebase("product", productId, { ...input, price }, { companyId: input.companyId });
+        return product;
       }),
   }),
 
@@ -248,7 +263,7 @@ export const appRouter = router({
         const dailyRate = input.dailyRate ? (typeof input.dailyRate === "string" ? parseFloat(input.dailyRate) : input.dailyRate) : undefined;
         const commissionPercentage = input.commissionPercentage ? (typeof input.commissionPercentage === "string" ? parseFloat(input.commissionPercentage) : input.commissionPercentage) : undefined;
         
-        return db.createProfessional({
+        const professional = await db.createProfessional({
           companyId: input.companyId,
           name: input.name,
           role: input.role,
@@ -256,6 +271,10 @@ export const appRouter = router({
           dailyRate: dailyRate as any,
           commissionPercentage: commissionPercentage as any,
         });
+        // Sync to Firebase
+        const profId = (professional as any).insertId || (professional as any).id;
+        if (profId) syncToFirebase("professional", profId, { ...input, hourlyRate, dailyRate, commissionPercentage }, { companyId: input.companyId });
+        return professional;
       }),
   }),
 
@@ -401,6 +420,11 @@ export const appRouter = router({
           }))
         );
 
+        // Sync quotation to Firebase
+        const createdQuotation = await db.getQuotationById(id);
+        if (createdQuotation) {
+          syncToFirebase("quotation", id, { ...createdQuotation, items: processedItems }, { companyId: input.companyId });
+        }
         return { id, number };
       }),
 
@@ -417,6 +441,8 @@ export const appRouter = router({
           throw new TRPCError({ code: "FORBIDDEN" });
         }
         await db.updateQuotationStatus(input.id, input.status);
+        // Sync status update to Firebase
+        syncToFirebase("quotation", input.id, { ...quotation, status: input.status }, { companyId: quotation.companyId });
         return { success: true };
       }),
 
@@ -526,6 +552,11 @@ export const appRouter = router({
           }))
         );
 
+        // Sync invoice to Firebase
+        const createdInvoice = await db.getInvoiceById(id);
+        if (createdInvoice) {
+          syncToFirebase("invoice", id, { ...createdInvoice, items: processedItems }, { companyId: input.companyId });
+        }
         return { id, number };
       }),
 
@@ -542,6 +573,8 @@ export const appRouter = router({
           throw new TRPCError({ code: "FORBIDDEN" });
         }
         await db.updateInvoiceStatus(input.id, input.status);
+        // Sync status update to Firebase
+        syncToFirebase("invoice", input.id, { ...invoice, status: input.status }, { companyId: invoice.companyId });
         return { success: true };
       }),
   }),
