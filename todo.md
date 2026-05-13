@@ -84,3 +84,15 @@
 - [ ] Testar página de validação pública
 - [ ] Testar configurações e personalização
 - [ ] Corrigir bugs encontrados durante testes
+
+## Correção CRUD Configurações > Empresa
+- [ ] Diagnosticar causa raiz: inputs disabled, falta de state controlado, falta de integração API
+- [ ] Remover disabled de todos os inputs editáveis
+- [ ] Implementar useState para cada campo do formulário
+- [ ] Implementar useEffect para carregar dados da empresa ativa
+- [ ] Implementar função saveCompany() com trpc.company.update.useMutation
+- [ ] Implementar invalidação de cache após salvar
+- [ ] Implementar loading state no botão de salvar
+- [ ] Implementar toast de sucesso/erro
+- [ ] Testar persistência: editar > salvar > recarregar > verificar dados
+- [ ] Verificar que não há overlay/z-index/pointer-events bloqueando inputs no mobile
