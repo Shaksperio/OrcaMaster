@@ -87,12 +87,12 @@
 
 
 ## Fase 11: Integração Firebase Realtime Database
-- [ ] Instalar dependências do Firebase (firebase, firebase-admin)
-- [ ] Configurar variáveis de ambiente (Firebase credentials)
-- [ ] Criar serviço de sincronização com Firebase (server/firebase.ts)
-- [ ] Sincronizar dados de Clientes em tempo real
-- [ ] Sincronizar dados de Produtos em tempo real
-- [ ] Sincronizar dados de Profissionais em tempo real
+- [x] Instalar dependências do Firebase (firebase, firebase-admin)
+- [x] Configurar variáveis de ambiente (Firebase credentials)
+- [x] Criar serviço de sincronização com Firebase (firebase-admin.ts + firebase-sync.ts)
+- [ ] Sincronizar dados de Clientes em tempo real (integrar nos procedures tRPC)
+- [ ] Sincronizar dados de Produtos em tempo real (integrar nos procedures tRPC)
+- [ ] Sincronizar dados de Profissionais em tempo real (integrar nos procedures tRPC)
 - [ ] Sincronizar dados de Orçamentos em tempo real
 - [ ] Sincronizar dados de Faturas em tempo real
 - [ ] Implementar listeners em tempo real no frontend
