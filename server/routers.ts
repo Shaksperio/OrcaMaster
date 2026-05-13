@@ -7,6 +7,12 @@ import * as db from "./db";
 import { TRPCError } from "@trpc/server";
 import { eq, and } from "drizzle-orm";
 import { companyMembers, companies } from "../drizzle/schema";
+import {
+  syncCompanyToFirebase,
+  syncClientToFirebase,
+  syncProductToFirebase,
+  syncProfessionalToFirebase,
+} from "./firebase-sync";
 
 // Helper to check user access to company
 async function checkCompanyAccess(userId: number, companyId: number) {
