@@ -70,12 +70,12 @@ export default function Customers() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Clientes</h1>
-            <p className="text-slate-600 mt-2">Gerencie todos os seus clientes</p>
+            <h1 className="text-3xl font-bold text-foreground">Clientes</h1>
+            <p className="text-muted-foreground mt-2">Gerencie todos os seus clientes</p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-blue-600 hover:bg-blue-700 gap-2">
+              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2">
                 <Plus className="w-4 h-4" />
                 Novo Cliente
               </Button>
@@ -178,7 +178,7 @@ export default function Customers() {
                 <Button
                   onClick={handleCreateCustomer}
                   disabled={createCustomerMutation.isPending || !formData.name}
-                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   {createCustomerMutation.isPending ? "Criando..." : "Criar Cliente"}
                 </Button>
@@ -227,11 +227,11 @@ export default function Customers() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
-                  {customer.email && <p className="text-slate-600">📧 {customer.email}</p>}
-                  {customer.phone && <p className="text-slate-600">📱 {customer.phone}</p>}
-                  {customer.address && <p className="text-slate-600">📍 {customer.address}</p>}
+                  {customer.email && <p className="text-muted-foreground">📧 {customer.email}</p>}
+                  {customer.phone && <p className="text-muted-foreground">📱 {customer.phone}</p>}
+                  {customer.address && <p className="text-muted-foreground">📍 {customer.address}</p>}
                   {(customer.city || customer.state) && (
-                    <p className="text-slate-600">
+                    <p className="text-muted-foreground">
                       {customer.city} {customer.state && `- ${customer.state}`}
                     </p>
                   )}

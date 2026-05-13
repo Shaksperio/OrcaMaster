@@ -37,10 +37,10 @@ export default function Quotations() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Orçamentos</h1>
-            <p className="text-slate-600 mt-2">Gerencie todos os seus orçamentos</p>
+            <h1 className="text-3xl font-bold text-foreground">Orçamentos</h1>
+            <p className="text-muted-foreground mt-2">Gerencie todos os seus orçamentos</p>
           </div>
-          <Button className="bg-blue-600 hover:bg-blue-700 gap-2" disabled>
+          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2" disabled>
             <Plus className="w-4 h-4" />
             Novo Orçamento
           </Button>
@@ -83,27 +83,27 @@ export default function Quotations() {
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-slate-200">
-                      <th className="text-left py-3 px-4 font-medium text-slate-600">Número</th>
-                      <th className="text-left py-3 px-4 font-medium text-slate-600">Cliente</th>
-                      <th className="text-left py-3 px-4 font-medium text-slate-600">Valor</th>
-                      <th className="text-left py-3 px-4 font-medium text-slate-600">Status</th>
-                      <th className="text-left py-3 px-4 font-medium text-slate-600">Data</th>
-                      <th className="text-center py-3 px-4 font-medium text-slate-600">Ações</th>
+                    <tr className="border-b border-border">
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Número</th>
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Cliente</th>
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Valor</th>
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Status</th>
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Data</th>
+                      <th className="text-center py-3 px-4 font-medium text-muted-foreground">Ações</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredQuotations.map((quotation: any) => (
-                      <tr key={quotation.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                        <td className="py-3 px-4 font-medium text-slate-900">{quotation.number}</td>
-                        <td className="py-3 px-4 text-slate-600">Cliente #{quotation.clientId}</td>
-                        <td className="py-3 px-4 font-medium text-slate-900">R$ {quotation.total.toLocaleString("pt-BR")}</td>
+                      <tr key={quotation.id} className="border-b border-slate-100 hover:bg-muted transition-colors">
+                        <td className="py-3 px-4 font-medium text-foreground">{quotation.number}</td>
+                        <td className="py-3 px-4 text-muted-foreground">Cliente #{quotation.clientId}</td>
+                        <td className="py-3 px-4 font-medium text-foreground">R$ {quotation.total.toLocaleString("pt-BR")}</td>
                         <td className="py-3 px-4">
                           <Badge className={statusColors[quotation.status] || "bg-slate-100 text-slate-700"}>
                             {quotation.status}
                           </Badge>
                         </td>
-                        <td className="py-3 px-4 text-slate-600">
+                        <td className="py-3 px-4 text-muted-foreground">
                           {new Date(quotation.createdAt).toLocaleDateString("pt-BR")}
                         </td>
                         <td className="py-3 px-4 text-center">

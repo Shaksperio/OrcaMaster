@@ -39,8 +39,8 @@ export default function PublicValidation() {
           <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center mx-auto mb-4">
             <span className="text-white font-bold text-2xl">OM</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">OrçaMaster</h1>
-          <p className="text-slate-600 mt-1">Validação de Documentos</p>
+          <h1 className="text-2xl font-bold text-foreground">OrçaMaster</h1>
+          <p className="text-muted-foreground mt-1">Validação de Documentos</p>
         </div>
 
         {/* Content */}
@@ -66,12 +66,12 @@ export default function PublicValidation() {
               <div className="space-y-3">
                 <div>
                   <p className="text-xs font-medium text-slate-500 uppercase">Tipo de Documento</p>
-                  <p className="text-sm font-semibold text-slate-900 mt-1">{documentType}</p>
+                  <p className="text-sm font-semibold text-foreground mt-1">{documentType}</p>
                 </div>
 
                 <div>
                   <p className="text-xs font-medium text-slate-500 uppercase">Número</p>
-                  <p className="text-sm font-semibold text-slate-900 mt-1">{document.number}</p>
+                  <p className="text-sm font-semibold text-foreground mt-1">{document.number}</p>
                 </div>
 
                 <div>
@@ -83,7 +83,7 @@ export default function PublicValidation() {
 
                 <div>
                   <p className="text-xs font-medium text-slate-500 uppercase">Data de Emissão</p>
-                  <p className="text-sm font-semibold text-slate-900 mt-1">
+                  <p className="text-sm font-semibold text-foreground mt-1">
                     {new Date(document.createdAt).toLocaleDateString("pt-BR")}
                   </p>
                 </div>
@@ -96,7 +96,7 @@ export default function PublicValidation() {
                 </div>
               </div>
 
-              <div className="border-t border-slate-200 pt-4 mt-4">
+              <div className="border-t border-border pt-4 mt-4">
                 <p className="text-xs text-slate-500 text-center">
                   Validado em: {new Date().toLocaleString("pt-BR")}
                 </p>
@@ -123,15 +123,15 @@ export default function PublicValidation() {
               </div>
 
               <div className="space-y-2">
-                <p className="text-sm text-slate-600">Possíveis causas:</p>
-                <ul className="text-xs text-slate-600 space-y-1 ml-4 list-disc">
+                <p className="text-sm text-muted-foreground">Possíveis causas:</p>
+                <ul className="text-xs text-muted-foreground space-y-1 ml-4 list-disc">
                   <li>O número do documento está incorreto</li>
                   <li>O QR Code foi danificado ou alterado</li>
                   <li>O documento foi removido do sistema</li>
                 </ul>
               </div>
 
-              <div className="border-t border-slate-200 pt-4 mt-4">
+              <div className="border-t border-border pt-4 mt-4">
                 <p className="text-xs text-slate-500 text-center">
                   Entre em contato com a empresa emissora para verificar a autenticidade.
                 </p>

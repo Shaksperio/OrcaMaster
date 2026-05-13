@@ -38,10 +38,10 @@ export default function Invoices() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Faturas</h1>
-            <p className="text-slate-600 mt-2">Gerencie todas as suas faturas</p>
+            <h1 className="text-3xl font-bold text-foreground">Faturas</h1>
+            <p className="text-muted-foreground mt-2">Gerencie todas as suas faturas</p>
           </div>
-          <Button className="bg-blue-600 hover:bg-blue-700 gap-2" disabled>
+          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2" disabled>
             <Plus className="w-4 h-4" />
             Nova Fatura
           </Button>
@@ -84,27 +84,27 @@ export default function Invoices() {
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-slate-200">
-                      <th className="text-left py-3 px-4 font-medium text-slate-600">Número</th>
-                      <th className="text-left py-3 px-4 font-medium text-slate-600">Cliente</th>
-                      <th className="text-left py-3 px-4 font-medium text-slate-600">Valor</th>
-                      <th className="text-left py-3 px-4 font-medium text-slate-600">Status</th>
-                      <th className="text-left py-3 px-4 font-medium text-slate-600">Vencimento</th>
-                      <th className="text-center py-3 px-4 font-medium text-slate-600">Ações</th>
+                    <tr className="border-b border-border">
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Número</th>
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Cliente</th>
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Valor</th>
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Status</th>
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Vencimento</th>
+                      <th className="text-center py-3 px-4 font-medium text-muted-foreground">Ações</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredInvoices.map((invoice: any) => (
-                      <tr key={invoice.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                        <td className="py-3 px-4 font-medium text-slate-900">{invoice.number}</td>
-                        <td className="py-3 px-4 text-slate-600">Cliente #{invoice.clientId}</td>
-                        <td className="py-3 px-4 font-medium text-slate-900">R$ {invoice.total.toLocaleString("pt-BR")}</td>
+                      <tr key={invoice.id} className="border-b border-slate-100 hover:bg-muted transition-colors">
+                        <td className="py-3 px-4 font-medium text-foreground">{invoice.number}</td>
+                        <td className="py-3 px-4 text-muted-foreground">Cliente #{invoice.clientId}</td>
+                        <td className="py-3 px-4 font-medium text-foreground">R$ {invoice.total.toLocaleString("pt-BR")}</td>
                         <td className="py-3 px-4">
                           <Badge className={statusColors[invoice.status] || "bg-slate-100 text-slate-700"}>
                             {invoice.status}
                           </Badge>
                         </td>
-                        <td className="py-3 px-4 text-slate-600">
+                        <td className="py-3 px-4 text-muted-foreground">
                           {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString("pt-BR") : "-"}
                         </td>
                         <td className="py-3 px-4 text-center flex gap-2 justify-center">

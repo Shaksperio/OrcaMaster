@@ -1,10 +1,10 @@
-import { useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, LogOut, Settings, Bell, FileText, Users, Package, Briefcase, BarChart3, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -30,16 +30,16 @@ export function AppLayout({ children }: AppLayoutProps) {
   };
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground">
       {/* Logo */}
-      <div className="p-6 border-b border-slate-200">
+      <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg">
             <span className="text-white font-bold text-lg">OM</span>
           </div>
           <div>
-            <h1 className="font-bold text-slate-900">OrçaMaster</h1>
-            <p className="text-xs text-slate-500">Gestão Financeira</p>
+            <h1 className="font-bold text-white">OrçaMaster</h1>
+            <p className="text-xs text-orange-100">Gestão Financeira</p>
           </div>
         </div>
       </div>
@@ -57,10 +57,10 @@ export function AppLayout({ children }: AppLayoutProps) {
                 setIsMobileMenuOpen(false);
               }}
               className={cn(
-                "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
+                "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200",
                 isActive
-                  ? "bg-blue-50 text-blue-600 font-medium"
-                  : "text-slate-600 hover:bg-slate-50"
+                  ? "bg-orange-500 text-white font-medium shadow-md hover:bg-orange-600"
+                  : "text-orange-50 hover:bg-green-700/50"
               )}
             >
               <Icon className="w-5 h-5" />
@@ -71,43 +71,54 @@ export function AppLayout({ children }: AppLayoutProps) {
       </nav>
 
       {/* User Section */}
-      <div className="p-4 border-t border-slate-200 space-y-2">
+      <div className="p-4 border-t border-sidebar-border space-y-2">
         <button 
           onClick={() => {
             navigate("/settings");
             setIsMobileMenuOpen(false);
           }}
-          className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors"
+          className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-orange-50 hover:bg-green-700/50 transition-colors"
         >
           <Settings className="w-5 h-5" />
-          <span className="text-sm">Configurações</span>
+          <span>Configurações</span>
         </button>
-        <button
+        <button 
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors"
+          className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-orange-50 hover:bg-red-600/30 transition-colors"
         >
           <LogOut className="w-5 h-5" />
-          <span className="text-sm">Sair</span>
+          <span>Sair</span>
         </button>
+        {user && (
+          <div className="pt-2 border-t border-sidebar-border text-xs text-orange-100">
+            <p className="font-medium text-white">{user.name || "Usuário"}</p>
+            <p className="truncate">{user.email}</p>
+          </div>
+        )}
       </div>
     </div>
   );
 
   return (
-    <div className="flex h-screen bg-slate-50">
+    <div className="flex h-screen bg-background">
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex w-64 bg-white border-r border-slate-200 flex-col">
+      <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
         <SidebarContent />
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="bg-white border-b border-slate-200 px-4 md:px-6 py-4 flex items-center justify-between">
-          {/* Mobile Menu */}
+      <div className="flex flex-col flex-1 md:ml-64">
+        {/* Mobile Header */}
+        <div className="md:hidden flex items-center justify-between h-16 px-4 bg-sidebar border-b border-sidebar-border shadow-sm">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
+              <span className="text-white font-bold text-sm">OM</span>
+            </div>
+            <span className="font-bold text-white">OrçaMaster</span>
+          </div>
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-            <SheetTrigger asChild className="md:hidden">
-              <Button variant="ghost" size="icon">
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-sidebar-foreground">
                 <Menu className="w-6 h-6" />
               </Button>
             </SheetTrigger>
@@ -115,24 +126,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               <SidebarContent />
             </SheetContent>
           </Sheet>
-
-          {/* Header Right */}
-          <div className="flex items-center gap-4 ml-auto">
-            <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors relative">
-              <Bell className="w-5 h-5 text-slate-600" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
-            <div className="flex items-center gap-3 pl-4 border-l border-slate-200">
-              <div className="text-right">
-                <p className="text-sm font-medium text-slate-900">{user?.name || "Usuário"}</p>
-                <p className="text-xs text-slate-500">{user?.email}</p>
-              </div>
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-sm font-bold">
-                {user?.name?.charAt(0) || "U"}
-              </div>
-            </div>
-          </div>
-        </header>
+        </div>
 
         {/* Page Content */}
         <main className="flex-1 overflow-auto">

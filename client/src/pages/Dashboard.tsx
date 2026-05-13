@@ -1,7 +1,7 @@
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, TrendingDown, DollarSign, FileText, Clock, AlertCircle } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, FileText, Clock, AlertCircle, Plus } from "lucide-react";
 import { useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +15,8 @@ export default function Dashboard() {
       change: "+15%",
       isPositive: true,
       icon: DollarSign,
+      bgColor: "bg-orange-50",
+      iconColor: "text-orange-600",
     },
     {
       title: "Orçamentos Pendentes",
@@ -22,6 +24,8 @@ export default function Dashboard() {
       change: "-2",
       isPositive: false,
       icon: FileText,
+      bgColor: "bg-green-50",
+      iconColor: "text-green-700",
     },
     {
       title: "Faturas Vencidas",
@@ -29,6 +33,8 @@ export default function Dashboard() {
       change: "+1",
       isPositive: false,
       icon: AlertCircle,
+      bgColor: "bg-red-50",
+      iconColor: "text-red-600",
     },
     {
       title: "Tempo Médio de Pagamento",
@@ -36,6 +42,8 @@ export default function Dashboard() {
       change: "-2 dias",
       isPositive: true,
       icon: Clock,
+      bgColor: "bg-blue-50",
+      iconColor: "text-blue-600",
     },
   ];
 
@@ -44,8 +52,8 @@ export default function Dashboard() {
       <div className="p-6 md:p-8 max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
-          <p className="text-slate-600 mt-2">Bem-vindo de volta! Aqui está um resumo do seu negócio.</p>
+          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground mt-2">Bem-vindo de volta! Aqui está um resumo do seu negócio.</p>
         </div>
 
         {/* Stats Grid */}
@@ -56,17 +64,17 @@ export default function Dashboard() {
               <Card key={stat.title} className="border-0 shadow-sm hover:shadow-md transition-shadow">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-slate-600">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
                       {stat.title}
                     </CardTitle>
-                    <div className="p-2 bg-blue-50 rounded-lg">
-                      <Icon className="w-4 h-4 text-blue-600" />
+                    <div className={cn("p-2 rounded-lg", stat.bgColor)}>
+                      <Icon className={cn("w-4 h-4", stat.iconColor)} />
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
+                    <p className="text-2xl font-bold text-foreground">{stat.value}</p>
                     <p className={cn(
                       "text-sm flex items-center gap-1",
                       stat.isPositive ? "text-green-600" : "text-red-600"
@@ -96,25 +104,18 @@ export default function Dashboard() {
             <CardContent>
               <div className="space-y-4">
                 {[1, 2, 3].map((item) => (
-                  <div key={item} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer">
+                  <div key={item} className="flex items-center justify-between p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors cursor-pointer">
                     <div>
-                      <p className="font-medium text-slate-900">ORC-{String(item).padStart(3, "0")}</p>
-                      <p className="text-sm text-slate-500">Cliente #{item}</p>
+                      <p className="font-medium text-foreground">ORC-{String(item).padStart(3, '0')}</p>
+                      <p className="text-sm text-muted-foreground">Cliente #{item}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium text-slate-900">R$ {(1000 * item).toLocaleString("pt-BR")}</p>
-                      <p className="text-xs text-slate-500">Rascunho</p>
+                      <p className="font-medium text-foreground">R$ {(1000 * item).toLocaleString('pt-BR')}</p>
+                      <p className="text-sm text-muted-foreground">Rascunho</p>
                     </div>
                   </div>
                 ))}
               </div>
-              <Button
-                onClick={() => navigate("/quotations")}
-                variant="outline"
-                className="w-full mt-4"
-              >
-                Ver Todos
-              </Button>
             </CardContent>
           </Card>
 
@@ -124,31 +125,35 @@ export default function Dashboard() {
               <CardTitle>Ações Rápidas</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button
+              <Button 
                 onClick={() => navigate("/quotations")}
-                className="w-full bg-blue-600 hover:bg-blue-700"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
               >
+                <Plus className="w-4 h-4 mr-2" />
                 Novo Orçamento
               </Button>
-              <Button
+              <Button 
                 onClick={() => navigate("/invoices")}
                 variant="outline"
-                className="w-full"
+                className="w-full border-primary text-primary hover:bg-primary/10"
               >
+                <Plus className="w-4 h-4 mr-2" />
                 Nova Fatura
               </Button>
-              <Button
+              <Button 
                 onClick={() => navigate("/customers")}
                 variant="outline"
-                className="w-full"
+                className="w-full border-primary text-primary hover:bg-primary/10"
               >
+                <Plus className="w-4 h-4 mr-2" />
                 Novo Cliente
               </Button>
-              <Button
+              <Button 
                 onClick={() => navigate("/products")}
                 variant="outline"
-                className="w-full"
+                className="w-full border-primary text-primary hover:bg-primary/10"
               >
+                <Plus className="w-4 h-4 mr-2" />
                 Novo Produto
               </Button>
             </CardContent>

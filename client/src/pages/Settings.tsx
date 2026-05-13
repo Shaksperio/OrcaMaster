@@ -19,13 +19,13 @@ export default function Settings() {
       id: "minimalista",
       name: "Minimalista",
       description: "Design limpo e moderno",
-      preview: "bg-white border-2 border-slate-200",
+      preview: "bg-white border-2 border-border",
     },
     {
       id: "classico",
       name: "Clássico",
       description: "Estilo profissional tradicional",
-      preview: "bg-slate-50 border-2 border-slate-400",
+      preview: "bg-muted border-2 border-slate-400",
     },
     {
       id: "tecnico",
@@ -40,11 +40,11 @@ export default function Settings() {
       <div className="p-6 md:p-8 max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
+          <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
             <SettingsIcon className="w-8 h-8" />
             Configurações
           </h1>
-          <p className="text-slate-600 mt-2">Personalize sua experiência e documentos</p>
+          <p className="text-muted-foreground mt-2">Personalize sua experiência e documentos</p>
         </div>
 
         {/* Tabs */}
@@ -192,13 +192,13 @@ export default function Settings() {
                       className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
                         selectedTheme === theme.id
                           ? "border-blue-600 bg-blue-50"
-                          : "border-slate-200 hover:border-slate-300"
+                          : "border-border hover:border-slate-300"
                       }`}
                       onClick={() => setSelectedTheme(theme.id)}
                     >
                       <div className={`${theme.preview} h-32 rounded mb-3`}></div>
-                      <h3 className="font-semibold text-slate-900">{theme.name}</h3>
-                      <p className="text-sm text-slate-600">{theme.description}</p>
+                      <h3 className="font-semibold text-foreground">{theme.name}</h3>
+                      <p className="text-sm text-muted-foreground">{theme.description}</p>
                     </div>
                   ))}
                 </div>
@@ -250,7 +250,7 @@ export default function Settings() {
                   </div>
                 </div>
 
-                <Button className="w-full bg-blue-600 hover:bg-blue-700" disabled>
+                <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled>
                   Salvar Cores
                 </Button>
               </CardContent>

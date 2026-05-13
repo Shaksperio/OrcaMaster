@@ -64,12 +64,12 @@ export default function Professionals() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Profissionais</h1>
-            <p className="text-slate-600 mt-2">Gerencie seus profissionais e prestadores de serviço</p>
+            <h1 className="text-3xl font-bold text-foreground">Profissionais</h1>
+            <p className="text-muted-foreground mt-2">Gerencie seus profissionais e prestadores de serviço</p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-blue-600 hover:bg-blue-700 gap-2">
+              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2">
                 <Plus className="w-4 h-4" />
                 Novo Profissional
               </Button>
@@ -138,7 +138,7 @@ export default function Professionals() {
                 <Button
                   onClick={handleCreateProfessional}
                   disabled={createProfessionalMutation.isPending || !formData.name}
-                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   {createProfessionalMutation.isPending ? "Criando..." : "Criar Profissional"}
                 </Button>
@@ -185,24 +185,24 @@ export default function Professionals() {
                 <CardContent className="space-y-3 text-sm">
                   {professional.hourlyRate && (
                     <div className="flex justify-between">
-                      <span className="text-slate-600">Valor/Hora:</span>
-                      <span className="font-medium text-slate-900">
+                      <span className="text-muted-foreground">Valor/Hora:</span>
+                      <span className="font-medium text-foreground">
                         R$ {professional.hourlyRate.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                       </span>
                     </div>
                   )}
                   {professional.dailyRate && (
                     <div className="flex justify-between">
-                      <span className="text-slate-600">Valor/Dia:</span>
-                      <span className="font-medium text-slate-900">
+                      <span className="text-muted-foreground">Valor/Dia:</span>
+                      <span className="font-medium text-foreground">
                         R$ {professional.dailyRate.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                       </span>
                     </div>
                   )}
                   {professional.commissionPercentage && (
                     <div className="flex justify-between">
-                      <span className="text-slate-600">Comissão:</span>
-                      <span className="font-medium text-slate-900">
+                      <span className="text-muted-foreground">Comissão:</span>
+                      <span className="font-medium text-foreground">
                         {professional.commissionPercentage}%
                       </span>
                     </div>
