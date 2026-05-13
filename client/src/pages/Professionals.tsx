@@ -9,6 +9,7 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
 import { useCompany } from "@/contexts/CompanyContext";
+import { toast } from "sonner";
 
 export default function Professionals() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -28,11 +29,28 @@ export default function Professionals() {
     { enabled: !!activeCompany?.id }
   );
 
-  const createProfessionalMutation = trpc.professionals.create.useMutation();
+  const utils = trpc.useUtils();
+
+  const createProfessionalMutation = trpc.professionals.create.useMutation({
+    onSuccess: () => {
+      utils.professionals.list.invalidate({ companyId: activeCompany?.id });
+      toast.success("Profissional criado com sucesso!");
+    },
+    onError: (error) => {
+      toast.error("Erro ao criar profissional: " + (error.message || "Tente novamente"));
+    },
+  });
 
   const handleCreateProfessional = async () => {
     try {
-      if (!activeCompany) return;
+      if (!activeCompany) {
+        toast.error("Selecione uma empresa primeiro");
+        return;
+      }
+      if (!formData.name.trim()) {
+        toast.error("Nome do profissional é obrigatório");
+        return;
+      }
       await createProfessionalMutation.mutateAsync({
         companyId: activeCompany.id,
         name: formData.name,
