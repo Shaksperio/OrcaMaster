@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SettingsIcon, Palette, FileText, Loader2, Save, CheckCircle } from "lucide-react";
-import { useState, useEffect } from "react";
+import { SettingsIcon, Palette, FileText, Loader2, Save, CheckCircle, Upload, X, Image as ImageIcon } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { useCompany } from "@/contexts/CompanyContext";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -77,11 +77,141 @@ export default function Settings() {
 
   // === DOCUMENTOS STATE ===
   const [validityDays, setValidityDays] = useState("30");
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [watermarkPreview, setWatermarkPreview] = useState<string | null>(null);
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [watermarkUploading, setWatermarkUploading] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const watermarkInputRef = useRef<HTMLInputElement>(null);
 
   // === TEMAS STATE ===
   const [selectedTheme, setSelectedTheme] = useState("minimalista");
   const [primaryColor, setPrimaryColor] = useState("#FF8C00");
   const [secondaryColor, setSecondaryColor] = useState("#1B5E20");
+
+  // === MUTATIONS DE UPLOAD ===
+  const uploadLogoMutation = trpc.upload.companyLogo.useMutation({
+    onSuccess: (data) => {
+      setLogoPreview(data.url);
+      toast.success("Logo enviada com sucesso!");
+      utils.company.list.invalidate();
+    },
+    onError: (error) => {
+      toast.error("Erro ao enviar logo: " + error.message);
+    },
+  });
+
+  const uploadWatermarkMutation = trpc.upload.companyWatermark.useMutation({
+    onSuccess: (data) => {
+      setWatermarkPreview(data.url);
+      toast.success("Marca d'água enviada com sucesso!");
+      utils.themes.default.invalidate();
+    },
+    onError: (error) => {
+      toast.error("Erro ao enviar marca d'água: " + error.message);
+    },
+  });
+
+  const removeLogoMutation = trpc.upload.removeLogo.useMutation({
+    onSuccess: () => {
+      setLogoPreview(null);
+      toast.success("Logo removida!");
+      utils.company.list.invalidate();
+    },
+    onError: (error) => {
+      toast.error("Erro ao remover logo: " + error.message);
+    },
+  });
+
+  const removeWatermarkMutation = trpc.upload.removeWatermark.useMutation({
+    onSuccess: () => {
+      setWatermarkPreview(null);
+      toast.success("Marca d'água removida!");
+      utils.themes.default.invalidate();
+    },
+    onError: (error) => {
+      toast.error("Erro ao remover marca d'água: " + error.message);
+    },
+  });
+
+  // === HANDLERS DE UPLOAD ===
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !activeCompany) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Selecione um arquivo de imagem (PNG, JPG, etc.)");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Arquivo muito grande. Máximo: 5MB");
+      return;
+    }
+
+    setLogoUploading(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64 = (reader.result as string).split(",")[1];
+        await uploadLogoMutation.mutateAsync({
+          companyId: activeCompany.id,
+          fileBase64: base64,
+          fileName: file.name,
+          mimeType: file.type,
+        });
+        setLogoUploading(false);
+      };
+      reader.onerror = () => {
+        toast.error("Erro ao ler arquivo");
+        setLogoUploading(false);
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      setLogoUploading(false);
+    }
+  };
+
+  const handleWatermarkUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !activeCompany) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Selecione um arquivo de imagem (PNG, JPG, etc.)");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Arquivo muito grande. Máximo: 5MB");
+      return;
+    }
+
+    setWatermarkUploading(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64 = (reader.result as string).split(",")[1];
+        await uploadWatermarkMutation.mutateAsync({
+          companyId: activeCompany.id,
+          fileBase64: base64,
+          fileName: file.name,
+          mimeType: file.type,
+        });
+        setWatermarkUploading(false);
+      };
+      reader.onerror = () => {
+        toast.error("Erro ao ler arquivo");
+        setWatermarkUploading(false);
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      setWatermarkUploading(false);
+    }
+  };
+
+  // === QUERY PARA TEMA PADRÃO (watermark) ===
+  const defaultThemeQuery = trpc.themes.default.useQuery(
+    { companyId: activeCompany?.id ?? 0 },
+    { enabled: !!activeCompany?.id }
+  );
 
   // === CARREGAR DADOS DA EMPRESA ATIVA ===
   useEffect(() => {
@@ -98,8 +228,17 @@ export default function Settings() {
         currency: activeCompany.currency || "BRL",
         taxRegime: activeCompany.taxRegime || "",
       });
+      // Load existing logo
+      setLogoPreview((activeCompany as any).logoUrl || null);
     }
   }, [activeCompany]);
+
+  // === CARREGAR WATERMARK DO TEMA PADRÃO ===
+  useEffect(() => {
+    if (defaultThemeQuery.data) {
+      setWatermarkPreview(defaultThemeQuery.data.watermarkUrl || null);
+    }
+  }, [defaultThemeQuery.data]);
 
   // === CARREGAR TEMA SALVO DO LOCALSTORAGE ===
   useEffect(() => {
@@ -475,30 +614,138 @@ export default function Settings() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Logo da Empresa */}
                 <div>
-                  <Label>Logo da Empresa</Label>
-                  <div className="mt-2 p-4 border-2 border-dashed border-slate-300 rounded-lg text-center">
-                    <p className="text-slate-500 mb-2">Clique para fazer upload da logo</p>
-                    <Button
-                      variant="outline"
-                      onClick={() => toast.info("Upload de logo será implementado em breve")}
+                  <Label className="text-sm font-medium">Logo da Empresa</Label>
+                  <p className="text-xs text-muted-foreground mb-2">Será exibida nos orçamentos e faturas. Formatos: PNG, JPG. Máx: 5MB</p>
+                  <input
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
+                    onChange={handleLogoUpload}
+                    className="hidden"
+                  />
+                  {logoPreview ? (
+                    <div className="mt-2 relative inline-block">
+                      <div className="border rounded-lg p-3 bg-slate-50">
+                        <img
+                          src={logoPreview}
+                          alt="Logo da empresa"
+                          className="max-h-32 max-w-xs object-contain"
+                        />
+                      </div>
+                      <div className="mt-2 flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => logoInputRef.current?.click()}
+                          disabled={logoUploading}
+                        >
+                          {logoUploading ? (
+                            <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Enviando...</>
+                          ) : (
+                            <><Upload className="w-3 h-3 mr-1" /> Trocar Logo</>
+                          )}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (activeCompany) removeLogoMutation.mutate({ companyId: activeCompany.id });
+                          }}
+                          disabled={removeLogoMutation.isPending}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <X className="w-3 h-3 mr-1" /> Remover
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      className="mt-2 p-6 border-2 border-dashed border-slate-300 rounded-lg text-center cursor-pointer hover:border-orange-400 hover:bg-orange-50/50 transition-colors"
+                      onClick={() => logoInputRef.current?.click()}
                     >
-                      Selecionar Arquivo
-                    </Button>
-                  </div>
+                      {logoUploading ? (
+                        <>
+                          <Loader2 className="w-8 h-8 mx-auto mb-2 text-orange-600 animate-spin" />
+                          <p className="text-sm text-orange-600 font-medium">Enviando logo...</p>
+                        </>
+                      ) : (
+                        <>
+                          <ImageIcon className="w-8 h-8 mx-auto mb-2 text-slate-400" />
+                          <p className="text-sm text-slate-500 mb-1">Clique para fazer upload da logo</p>
+                          <p className="text-xs text-slate-400">PNG, JPG ou SVG até 5MB</p>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
 
+                {/* Marca d'água */}
                 <div>
-                  <Label>Marca d'água</Label>
-                  <div className="mt-2 p-4 border-2 border-dashed border-slate-300 rounded-lg text-center">
-                    <p className="text-slate-500 mb-2">Clique para fazer upload da marca d'água</p>
-                    <Button
-                      variant="outline"
-                      onClick={() => toast.info("Upload de marca d'água será implementado em breve")}
+                  <Label className="text-sm font-medium">Marca d'água</Label>
+                  <p className="text-xs text-muted-foreground mb-2">Será aplicada como fundo nos documentos. Formatos: PNG, JPG. Máx: 5MB</p>
+                  <input
+                    ref={watermarkInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
+                    onChange={handleWatermarkUpload}
+                    className="hidden"
+                  />
+                  {watermarkPreview ? (
+                    <div className="mt-2 relative inline-block">
+                      <div className="border rounded-lg p-3 bg-slate-50">
+                        <img
+                          src={watermarkPreview}
+                          alt="Marca d'água"
+                          className="max-h-32 max-w-xs object-contain opacity-50"
+                        />
+                      </div>
+                      <div className="mt-2 flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => watermarkInputRef.current?.click()}
+                          disabled={watermarkUploading}
+                        >
+                          {watermarkUploading ? (
+                            <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Enviando...</>
+                          ) : (
+                            <><Upload className="w-3 h-3 mr-1" /> Trocar Marca d'água</>
+                          )}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (activeCompany) removeWatermarkMutation.mutate({ companyId: activeCompany.id });
+                          }}
+                          disabled={removeWatermarkMutation.isPending}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <X className="w-3 h-3 mr-1" /> Remover
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      className="mt-2 p-6 border-2 border-dashed border-slate-300 rounded-lg text-center cursor-pointer hover:border-orange-400 hover:bg-orange-50/50 transition-colors"
+                      onClick={() => watermarkInputRef.current?.click()}
                     >
-                      Selecionar Arquivo
-                    </Button>
-                  </div>
+                      {watermarkUploading ? (
+                        <>
+                          <Loader2 className="w-8 h-8 mx-auto mb-2 text-orange-600 animate-spin" />
+                          <p className="text-sm text-orange-600 font-medium">Enviando marca d'água...</p>
+                        </>
+                      ) : (
+                        <>
+                          <ImageIcon className="w-8 h-8 mx-auto mb-2 text-slate-400" />
+                          <p className="text-sm text-slate-500 mb-1">Clique para fazer upload da marca d'água</p>
+                          <p className="text-xs text-slate-400">PNG, JPG ou SVG até 5MB</p>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div>

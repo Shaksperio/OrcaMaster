@@ -118,4 +118,12 @@
 - [x] Validar credenciais Firebase Admin (private key PEM) e confirmar conexão
 - [x] Integrar sync nos writes de invoices (create/update status)
 - [x] Adicionar teste de sincronização Firebase (write/read/remove real confirmado)
+- [x] Push para GitHub
+
+## Fase 6 - Bug Fix: Logomarca e Marca d'água em Configurações > Documentos
+- [x] Investigar código atual de upload de logomarca e marca d'água
+- [x] Implementar upload funcional com persistência (S3 + banco)
+- [x] Testar funcionalidade completa
+- [x] Corrigir persistência da marca d'água (criar theme default se não existir)
+- [x] Carregar watermarkUrl no Settings.tsx ao abrir página
 - [ ] Push para GitHub

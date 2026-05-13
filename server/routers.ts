@@ -118,6 +118,8 @@ export const appRouter = router({
         currency: z.string().optional(),
         language: z.string().optional(),
         taxRegime: z.string().optional(),
+        logoUrl: z.string().optional(),
+        logoStorageKey: z.string().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         const { company, isOwner } = await checkCompanyAccess(ctx.user.id, input.id);
@@ -278,6 +280,78 @@ export const appRouter = router({
       }),
   }),
 
+  // Upload procedures
+  upload: router({
+    companyLogo: protectedProcedure
+      .input(z.object({
+        companyId: z.number(),
+        fileBase64: z.string(),
+        fileName: z.string(),
+        mimeType: z.string(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const { company, isOwner } = await checkCompanyAccess(ctx.user.id, input.companyId);
+        if (!isOwner) throw new TRPCError({ code: "FORBIDDEN" });
+        
+        const { storagePut } = await import("./storage");
+        const buffer = Buffer.from(input.fileBase64, "base64");
+        const fileKey = `companies/${input.companyId}/logo/${input.fileName}`;
+        const { key, url } = await storagePut(fileKey, buffer, input.mimeType);
+        
+        await db.updateCompany(input.companyId, { logoUrl: url, logoStorageKey: key });
+        syncToFirebase("company", input.companyId, { logoUrl: url, logoStorageKey: key });
+        
+        return { url, key };
+      }),
+
+    companyWatermark: protectedProcedure
+      .input(z.object({
+        companyId: z.number(),
+        fileBase64: z.string(),
+        fileName: z.string(),
+        mimeType: z.string(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const { company, isOwner } = await checkCompanyAccess(ctx.user.id, input.companyId);
+        if (!isOwner) throw new TRPCError({ code: "FORBIDDEN" });
+        
+        const { storagePut } = await import("./storage");
+        const buffer = Buffer.from(input.fileBase64, "base64");
+        const fileKey = `companies/${input.companyId}/watermark/${input.fileName}`;
+        const { key, url } = await storagePut(fileKey, buffer, input.mimeType);
+        
+        // Store watermark in default theme (creates one if needed)
+        const defaultTheme = await db.getOrCreateDefaultTheme(input.companyId);
+        if (defaultTheme) {
+          await db.updateThemeWatermark(defaultTheme.id, url, key);
+        }
+        
+        return { url, key };
+      }),
+
+    removeLogo: protectedProcedure
+      .input(z.object({ companyId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        const { company, isOwner } = await checkCompanyAccess(ctx.user.id, input.companyId);
+        if (!isOwner) throw new TRPCError({ code: "FORBIDDEN" });
+        await db.updateCompany(input.companyId, { logoUrl: null, logoStorageKey: null });
+        syncToFirebase("company", input.companyId, { logoUrl: null, logoStorageKey: null });
+        return { success: true };
+      }),
+
+    removeWatermark: protectedProcedure
+      .input(z.object({ companyId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        const { company, isOwner } = await checkCompanyAccess(ctx.user.id, input.companyId);
+        if (!isOwner) throw new TRPCError({ code: "FORBIDDEN" });
+        const defaultTheme = await db.getOrCreateDefaultTheme(input.companyId);
+        if (defaultTheme) {
+          await db.updateThemeWatermark(defaultTheme.id, null, null);
+        }
+        return { success: true };
+      }),
+  }),
+
   // Theme procedures
   themes: router({
     list: protectedProcedure
@@ -291,7 +365,7 @@ export const appRouter = router({
       .input(z.object({ companyId: z.number() }))
       .query(async ({ input, ctx }) => {
         await checkCompanyAccess(ctx.user.id, input.companyId);
-        return db.getDefaultTheme(input.companyId);
+        return db.getOrCreateDefaultTheme(input.companyId);
       }),
   }),
 

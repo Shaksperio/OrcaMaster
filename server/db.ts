@@ -228,6 +228,34 @@ export async function getDefaultTheme(companyId: number) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+export async function getOrCreateDefaultTheme(companyId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  // Try to find existing default theme
+  const existing = await db.select().from(themes).where(and(eq(themes.companyId, companyId), eq(themes.isDefault, true))).limit(1);
+  if (existing.length > 0) return existing[0];
+  // Try to find any theme
+  const anyTheme = await db.select().from(themes).where(eq(themes.companyId, companyId)).limit(1);
+  if (anyTheme.length > 0) return anyTheme[0];
+  // Create default theme
+  const [result] = await db.insert(themes).values({
+    companyId,
+    name: "Padrão",
+    layout: "minimalista",
+    primaryColor: "#FF8C00",
+    secondaryColor: "#1B5E20",
+    isDefault: true,
+  });
+  const newTheme = await db.select().from(themes).where(eq(themes.id, result.insertId)).limit(1);
+  return newTheme.length > 0 ? newTheme[0] : undefined;
+}
+
+export async function updateThemeWatermark(themeId: number, watermarkUrl: string | null, watermarkStorageKey: string | null) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(themes).set({ watermarkUrl, watermarkStorageKey }).where(eq(themes.id, themeId));
+}
+
 // Company member queries
 export async function getCompanyMembers(companyId: number) {
   const db = await getDb();
