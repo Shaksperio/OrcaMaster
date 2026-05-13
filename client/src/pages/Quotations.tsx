@@ -10,11 +10,11 @@ import { useCompany } from "@/contexts/CompanyContext";
 import { Input } from "@/components/ui/input";
 
 const statusColors: Record<string, string> = {
-  rascunho: "bg-slate-100 text-slate-700",
+  rascunho: "bg-muted text-muted-foreground",
   enviado: "bg-blue-100 text-blue-700",
   aprovado: "bg-green-100 text-green-700",
   rejeitado: "bg-red-100 text-red-700",
-  vencido: "bg-orange-100 text-orange-700",
+  vencido: "bg-primary/10 text-primary",
   convertido: "bg-purple-100 text-purple-700",
 };
 
