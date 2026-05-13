@@ -1,0 +1,9 @@
+{
+  "query": "\nALTER TABLE `quotations`\n  ADD COLUMN `workLocation` text,\n  ADD COLUMN `issPercentage` decimal(5,2) DEFAULT '0',\n  ADD COLUMN `icmsPercentage` decimal(5,2) DEFAULT '0',\n  ADD COLUMN `pixHolder` varchar(255),\n  ADD COLUMN `pixBank` varchar(255),\n  ADD COLUMN `pixKey` varchar(255),\n  ADD COLUMN `paymentConditions` text,\n  ADD COLUMN `paymentMethodDescription` text,\n  ADD COLUMN `serviceDescription` text,\n  ADD COLUMN `deliveryEstimate` text,\n  ADD COLUMN `legalNotice` text;\n\nALTER TABLE `quotationItems`\n  ADD COLUMN `itemType` varchar(100);\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 25VRT8CbgWoopkb.root --database giCvq8864yJwZQUZMu9kWH --execute \nALTER TABLE `quotations`\n  ADD COLUMN `workLocation` text,\n  ADD COLUMN `issPercentage` decimal(5,2) DEFAULT '0',\n  ADD COLUMN `icmsPercentage` decimal(5,2) DEFAULT '0',\n  ADD COLUMN `pixHolder` varchar(255),\n  ADD COLUMN `pixBank` varchar(255),\n  ADD COLUMN `pixKey` varchar(255),\n  ADD COLUMN `paymentConditions` text,\n  ADD COLUMN `paymentMethodDescription` text,\n  ADD COLUMN `serviceDescription` text,\n  ADD COLUMN `deliveryEstimate` text,\n  ADD COLUMN `legalNotice` text;\n\nALTER TABLE `quotationItems`\n  ADD COLUMN `itemType` varchar(100);\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 3585
+}

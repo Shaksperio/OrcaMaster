@@ -291,7 +291,146 @@ export const appRouter = router({
         const quotation = await db.getQuotationById(input.id);
         if (!quotation) throw new TRPCError({ code: "NOT_FOUND" });
         await checkCompanyAccess(ctx.user.id, quotation.companyId);
-        return quotation;
+        const items = await db.getQuotationItems(input.id);
+        const client = await db.getClientById(quotation.clientId);
+        const company = await db.getCompanyById(quotation.companyId);
+        return { ...quotation, items, client, company };
+      }),
+
+    create: protectedProcedure
+      .input(z.object({
+        companyId: z.number(),
+        clientId: z.number(),
+        description: z.string().optional(),
+        notes: z.string().optional(),
+        discount: z.string().or(z.number()).optional(),
+        discountPercentage: z.string().or(z.number()).optional(),
+        tax: z.string().or(z.number()).optional(),
+        validUntil: z.string().optional(),
+        paymentTerms: z.string().optional(),
+        // Novos campos do modelo profissional
+        workLocation: z.string().optional(),
+        issPercentage: z.string().or(z.number()).optional(),
+        icmsPercentage: z.string().or(z.number()).optional(),
+        pixHolder: z.string().optional(),
+        pixBank: z.string().optional(),
+        pixKey: z.string().optional(),
+        paymentConditions: z.string().optional(),
+        paymentMethodDescription: z.string().optional(),
+        serviceDescription: z.string().optional(),
+        deliveryEstimate: z.string().optional(),
+        legalNotice: z.string().optional(),
+        items: z.array(z.object({
+          productId: z.number().nullable().optional(),
+          description: z.string().min(1),
+          itemType: z.string().optional(),
+          quantity: z.string().or(z.number()),
+          unit: z.string().optional(),
+          unitPrice: z.string().or(z.number()),
+          discount: z.string().or(z.number()).optional(),
+        })).min(1),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const { isOwner, member } = await checkCompanyAccess(ctx.user.id, input.companyId);
+
+        // Calculate item totals
+        const processedItems = input.items.map(item => {
+          const qty = typeof item.quantity === "string" ? parseFloat(item.quantity) : item.quantity;
+          const price = typeof item.unitPrice === "string" ? parseFloat(item.unitPrice) : item.unitPrice;
+          const disc = item.discount ? (typeof item.discount === "string" ? parseFloat(item.discount) : item.discount) : 0;
+          const total = (qty * price) - disc;
+          return { ...item, quantity: String(qty), unitPrice: String(price), discount: String(disc), total: String(total) };
+        });
+
+        const subtotal = processedItems.reduce((sum, item) => sum + parseFloat(item.total), 0);
+        const discountVal = input.discount ? (typeof input.discount === "string" ? parseFloat(input.discount) : input.discount) : 0;
+        const discountPct = input.discountPercentage ? (typeof input.discountPercentage === "string" ? parseFloat(input.discountPercentage) : input.discountPercentage) : 0;
+        const effectiveDiscount = discountPct > 0 ? subtotal * (discountPct / 100) : discountVal;
+
+        // ISS e ICMS
+        const issPct = input.issPercentage ? (typeof input.issPercentage === "string" ? parseFloat(input.issPercentage) : input.issPercentage) : 0;
+        const icmsPct = input.icmsPercentage ? (typeof input.icmsPercentage === "string" ? parseFloat(input.icmsPercentage) : input.icmsPercentage) : 0;
+        const issVal = subtotal * (issPct / 100);
+        const icmsVal = subtotal * (icmsPct / 100);
+        const taxVal = issVal + icmsVal;
+        const total = subtotal - effectiveDiscount + taxVal;
+
+        // Generate sequential number
+        const number = await db.getNextQuotationNumber(input.companyId);
+
+        // Create quotation
+        const { id } = await db.createQuotation({
+          companyId: input.companyId,
+          clientId: input.clientId,
+          number,
+          status: "rascunho",
+          description: input.description,
+          notes: input.notes,
+          subtotal: String(subtotal) as any,
+          discount: String(effectiveDiscount) as any,
+          discountPercentage: String(discountPct) as any,
+          tax: String(taxVal) as any,
+          total: String(total) as any,
+          validUntil: input.validUntil ? new Date(input.validUntil) : undefined,
+          paymentTerms: input.paymentTerms,
+          workLocation: input.workLocation,
+          issPercentage: String(issPct) as any,
+          icmsPercentage: String(icmsPct) as any,
+          pixHolder: input.pixHolder,
+          pixBank: input.pixBank,
+          pixKey: input.pixKey,
+          paymentConditions: input.paymentConditions,
+          paymentMethodDescription: input.paymentMethodDescription,
+          serviceDescription: input.serviceDescription,
+          deliveryEstimate: input.deliveryEstimate,
+          legalNotice: input.legalNotice,
+        });
+
+        // Create items
+        await db.createQuotationItems(
+          processedItems.map(item => ({
+            quotationId: id,
+            productId: item.productId ?? undefined,
+            description: item.description,
+            itemType: item.itemType,
+            quantity: item.quantity as any,
+            unit: item.unit,
+            unitPrice: item.unitPrice as any,
+            discount: item.discount as any,
+            total: item.total as any,
+          }))
+        );
+
+        return { id, number };
+      }),
+
+    updateStatus: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        status: z.enum(["rascunho", "enviado", "aprovado", "rejeitado", "vencido", "convertido"]),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const quotation = await db.getQuotationById(input.id);
+        if (!quotation) throw new TRPCError({ code: "NOT_FOUND" });
+        const { isOwner, member } = await checkCompanyAccess(ctx.user.id, quotation.companyId);
+        if (!checkRolePermission(member?.role, isOwner, ["admin", "gerente"])) {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+        await db.updateQuotationStatus(input.id, input.status);
+        return { success: true };
+      }),
+
+    convertToInvoice: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        const quotation = await db.getQuotationById(input.id);
+        if (!quotation) throw new TRPCError({ code: "NOT_FOUND" });
+        const { isOwner, member } = await checkCompanyAccess(ctx.user.id, quotation.companyId);
+        if (!checkRolePermission(member?.role, isOwner, ["admin", "gerente"])) {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+        const result = await db.convertQuotationToInvoice(input.id);
+        return result;
       }),
   }),
 
@@ -310,7 +449,100 @@ export const appRouter = router({
         const invoice = await db.getInvoiceById(input.id);
         if (!invoice) throw new TRPCError({ code: "NOT_FOUND" });
         await checkCompanyAccess(ctx.user.id, invoice.companyId);
-        return invoice;
+        const items = await db.getInvoiceItems(input.id);
+        return { ...invoice, items };
+      }),
+
+    create: protectedProcedure
+      .input(z.object({
+        companyId: z.number(),
+        clientId: z.number(),
+        description: z.string().optional(),
+        notes: z.string().optional(),
+        discount: z.string().or(z.number()).optional(),
+        discountPercentage: z.string().or(z.number()).optional(),
+        tax: z.string().or(z.number()).optional(),
+        dueDate: z.string().optional(),
+        paymentTerms: z.string().optional(),
+        items: z.array(z.object({
+          productId: z.number().nullable().optional(),
+          description: z.string().min(1),
+          quantity: z.string().or(z.number()),
+          unit: z.string().optional(),
+          unitPrice: z.string().or(z.number()),
+          discount: z.string().or(z.number()).optional(),
+        })).min(1),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const { isOwner, member } = await checkCompanyAccess(ctx.user.id, input.companyId);
+
+        // Calculate item totals
+        const processedItems = input.items.map(item => {
+          const qty = typeof item.quantity === "string" ? parseFloat(item.quantity) : item.quantity;
+          const price = typeof item.unitPrice === "string" ? parseFloat(item.unitPrice) : item.unitPrice;
+          const disc = item.discount ? (typeof item.discount === "string" ? parseFloat(item.discount) : item.discount) : 0;
+          const total = (qty * price) - disc;
+          return { ...item, quantity: String(qty), unitPrice: String(price), discount: String(disc), total: String(total) };
+        });
+
+        const subtotal = processedItems.reduce((sum, item) => sum + parseFloat(item.total), 0);
+        const discountVal = input.discount ? (typeof input.discount === "string" ? parseFloat(input.discount) : input.discount) : 0;
+        const discountPct = input.discountPercentage ? (typeof input.discountPercentage === "string" ? parseFloat(input.discountPercentage) : input.discountPercentage) : 0;
+        const effectiveDiscount = discountPct > 0 ? subtotal * (discountPct / 100) : discountVal;
+        const taxVal = input.tax ? (typeof input.tax === "string" ? parseFloat(input.tax) : input.tax) : 0;
+        const total = subtotal - effectiveDiscount + taxVal;
+
+        // Generate sequential number
+        const number = await db.getNextInvoiceNumber(input.companyId);
+
+        // Create invoice
+        const { id } = await db.createInvoice({
+          companyId: input.companyId,
+          clientId: input.clientId,
+          number,
+          status: "rascunho",
+          description: input.description,
+          notes: input.notes,
+          subtotal: String(subtotal) as any,
+          discount: String(effectiveDiscount) as any,
+          discountPercentage: String(discountPct) as any,
+          tax: String(taxVal) as any,
+          total: String(total) as any,
+          dueDate: input.dueDate ? new Date(input.dueDate) : undefined,
+          paymentTerms: input.paymentTerms,
+        });
+
+        // Create items
+        await db.createInvoiceItems(
+          processedItems.map(item => ({
+            invoiceId: id,
+            productId: item.productId ?? undefined,
+            description: item.description,
+            quantity: item.quantity as any,
+            unit: item.unit,
+            unitPrice: item.unitPrice as any,
+            discount: item.discount as any,
+            total: item.total as any,
+          }))
+        );
+
+        return { id, number };
+      }),
+
+    updateStatus: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        status: z.enum(["rascunho", "enviado", "aprovado", "parcialmente_pago", "pago", "vencido", "cancelado"]),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const invoice = await db.getInvoiceById(input.id);
+        if (!invoice) throw new TRPCError({ code: "NOT_FOUND" });
+        const { isOwner, member } = await checkCompanyAccess(ctx.user.id, invoice.companyId);
+        if (!checkRolePermission(member?.role, isOwner, ["admin", "gerente"])) {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+        await db.updateInvoiceStatus(input.id, input.status);
+        return { success: true };
       }),
   }),
 });

@@ -48,7 +48,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       <nav className="flex-1 p-4 space-y-2">
         {navigationItems.map((item) => {
           const Icon = item.icon;
-          const isActive = location === item.href;
+          const isActive = location === item.href || (item.href !== "/dashboard" && location.startsWith(item.href + "/"));
           return (
             <button
               key={item.href}

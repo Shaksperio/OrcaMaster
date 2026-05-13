@@ -1,6 +1,6 @@
-import { eq, and, desc, asc } from "drizzle-orm";
+import { eq, and, desc, asc, sql, count } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, companies, clients, products, professionals, quotations, invoices, companyMembers, themes } from "../drizzle/schema";
+import { InsertUser, users, companies, clients, products, professionals, quotations, quotationItems, invoices, invoiceItems, companyMembers, themes } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -240,4 +240,164 @@ export async function getUserCompanyRole(userId: number, companyId: number) {
   if (!db) return undefined;
   const result = await db.select().from(companyMembers).where(and(eq(companyMembers.userId, userId), eq(companyMembers.companyId, companyId))).limit(1);
   return result.length > 0 ? result[0] : undefined;
+}
+
+// =====================================================
+// Quotation creation helpers
+// =====================================================
+
+export async function getNextQuotationNumber(companyId: number): Promise<string> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.select({ total: count() }).from(quotations).where(eq(quotations.companyId, companyId));
+  const nextNum = (result[0]?.total ?? 0) + 1;
+  return `ORC-${String(nextNum).padStart(3, "0")}`;
+}
+
+export async function createQuotation(data: typeof quotations.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(quotations).values(data);
+  const insertId = result[0].insertId;
+  return { id: insertId };
+}
+
+export async function createQuotationItems(items: (typeof quotationItems.$inferInsert)[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  if (items.length === 0) return;
+  await db.insert(quotationItems).values(items);
+}
+
+export async function getQuotationItems(quotationId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(quotationItems).where(eq(quotationItems.quotationId, quotationId));
+}
+
+export async function updateQuotationStatus(id: number, status: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(quotations).set({ status: status as any }).where(eq(quotations.id, id));
+}
+
+export async function updateQuotation(id: number, data: Partial<typeof quotations.$inferInsert>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(quotations).set(data).where(eq(quotations.id, id));
+}
+
+export async function deleteQuotationItems(quotationId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(quotationItems).where(eq(quotationItems.quotationId, quotationId));
+}
+
+// =====================================================
+// Invoice creation helpers
+// =====================================================
+
+export async function getNextInvoiceNumber(companyId: number): Promise<string> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.select({ total: count() }).from(invoices).where(eq(invoices.companyId, companyId));
+  const nextNum = (result[0]?.total ?? 0) + 1;
+  return `FAT-${String(nextNum).padStart(3, "0")}`;
+}
+
+export async function createInvoice(data: typeof invoices.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(invoices).values(data);
+  const insertId = result[0].insertId;
+  return { id: insertId };
+}
+
+export async function createInvoiceItems(items: (typeof invoiceItems.$inferInsert)[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  if (items.length === 0) return;
+  await db.insert(invoiceItems).values(items);
+}
+
+export async function getInvoiceItems(invoiceId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(invoiceItems).where(eq(invoiceItems.invoiceId, invoiceId));
+}
+
+export async function updateInvoiceStatus(id: number, status: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(invoices).set({ status: status as any }).where(eq(invoices.id, id));
+}
+
+export async function updateInvoice(id: number, data: Partial<typeof invoices.$inferInsert>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(invoices).set(data).where(eq(invoices.id, id));
+}
+
+export async function deleteInvoiceItems(invoiceId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(invoiceItems).where(eq(invoiceItems.invoiceId, invoiceId));
+}
+
+// =====================================================
+// Conversion: Quotation → Invoice
+// =====================================================
+
+export async function convertQuotationToInvoice(quotationId: number): Promise<{ invoiceId: number; invoiceNumber: string }> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Get the quotation
+  const quotation = await getQuotationById(quotationId);
+  if (!quotation) throw new Error("Orçamento não encontrado");
+  if (quotation.status !== "aprovado") throw new Error("Apenas orçamentos aprovados podem ser convertidos em fatura");
+
+  // Get quotation items
+  const qItems = await getQuotationItems(quotationId);
+
+  // Generate invoice number
+  const invoiceNumber = await getNextInvoiceNumber(quotation.companyId);
+
+  // Create invoice
+  const { id: invoiceId } = await createInvoice({
+    companyId: quotation.companyId,
+    clientId: quotation.clientId,
+    quotationId: quotation.id,
+    number: invoiceNumber,
+    status: "rascunho",
+    description: quotation.description,
+    notes: quotation.notes,
+    subtotal: quotation.subtotal,
+    discount: quotation.discount,
+    discountPercentage: quotation.discountPercentage,
+    tax: quotation.tax,
+    total: quotation.total,
+    paymentTerms: quotation.paymentTerms,
+    themeId: quotation.themeId,
+  });
+
+  // Copy items
+  if (qItems.length > 0) {
+    const invoiceItemsData = qItems.map((item) => ({
+      invoiceId,
+      productId: item.productId,
+      description: item.description,
+      quantity: item.quantity,
+      unit: item.unit,
+      unitPrice: item.unitPrice,
+      discount: item.discount,
+      total: item.total,
+    }));
+    await createInvoiceItems(invoiceItemsData);
+  }
+
+  // Update quotation status to "convertido"
+  await updateQuotationStatus(quotationId, "convertido");
+
+  return { invoiceId, invoiceNumber };
 }

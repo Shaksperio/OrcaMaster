@@ -21,10 +21,10 @@
 ## Fase 4: Orçamentos e Faturas
 - [x] Implementar UI de orçamentos com listagem (empresa ativa, sem placeholders)
 - [x] Implementar UI de faturas com listagem (empresa ativa, sem placeholders)
-- [ ] Implementar criação de orçamentos com seleção de itens (procedures + UI) - PRIORIDADE ALTA
-- [ ] Implementar numeração sequencial automática (ORC-001, FAT-001) - PRIORIDADE ALTA
-- [ ] Implementar controle de status (Rascunho, Enviado, Aprovado, Pago, etc.) - PRIORIDADE ALTA
-- [ ] Implementar conversão automática de orçamento em fatura - PRIORIDADE MÉDIA
+- [x] Implementar criação de orçamentos com seleção de itens (procedures + UI) - PRIORIDADE ALTA
+- [x] Implementar numeração sequencial automática (ORC-001, FAT-001) - PRIORIDADE ALTA
+- [x] Implementar controle de status (Rascunho, Enviado, Aprovado, Pago, etc.) - PRIORIDADE ALTA
+- [x] Implementar conversão automática de orçamento em fatura - PRIORIDADE MÉDIA
 - [ ] Implementar validade de orçamento com alertas - PRIORIDADE MÉDIA
 - [ ] Implementar duplicação de documentos - PRIORIDADE BAIXA
 - [ ] Implementar histórico de versões - PRIORIDADE BAIXA
@@ -33,7 +33,7 @@
 - [x] Instalar biblioteca de PDF (pdfkit) e QR Code
 - [x] Implementar geração de PDF com layout customizável (server/pdf-generator.ts)
 - [x] Implementar geração de QR Code embutido no PDF
-- [ ] Implementar download de PDF no cliente (botão nas páginas)
+- [x] Implementar download de PDF no cliente (botão nas páginas)
 - [x] Implementar página de configurações com temas (UI)
 - [x] Implementar personalização de temas de cores (UI)
 - [x] Implementar página pública de validação via QR Code
@@ -86,13 +86,25 @@
 - [ ] Corrigir bugs encontrados durante testes
 
 ## Correção CRUD Configurações > Empresa
-- [ ] Diagnosticar causa raiz: inputs disabled, falta de state controlado, falta de integração API
-- [ ] Remover disabled de todos os inputs editáveis
-- [ ] Implementar useState para cada campo do formulário
-- [ ] Implementar useEffect para carregar dados da empresa ativa
-- [ ] Implementar função saveCompany() com trpc.company.update.useMutation
-- [ ] Implementar invalidação de cache após salvar
-- [ ] Implementar loading state no botão de salvar
-- [ ] Implementar toast de sucesso/erro
-- [ ] Testar persistência: editar > salvar > recarregar > verificar dados
-- [ ] Verificar que não há overlay/z-index/pointer-events bloqueando inputs no mobile
+- [x] Diagnosticar causa raiz: inputs disabled, falta de state controlado, falta de integração API
+- [x] Remover disabled de todos os inputs editáveis
+- [x] Implementar useState para cada campo do formulário
+- [x] Implementar useEffect para carregar dados da empresa ativa
+- [x] Implementar função saveCompany() com trpc.company.update.useMutation
+- [x] Implementar invalidação de cache após salvar
+- [x] Implementar loading state no botão de salvar
+- [x] Implementar toast de sucesso/erro
+- [x] Testar persistência: editar > salvar > recarregar > verificar dados
+- [x] Verificar que não há overlay/z-index/pointer-events bloqueando inputs no mobile
+
+## Fase 4B - Redesign Orçamentos (modelo profissional)
+- [x] Adicionar campos extras ao schema: localObra, issPercentage, icmsPercentage, pixKey, pixBank, pixHolder, deliveryEstimate, legalNotice, serviceDescription, paymentMethodDescription
+- [x] Migrar novos campos no banco de dados
+- [x] Atualizar procedures tRPC com novos campos
+- [x] Reescrever formulário de criação com todos os campos do modelo
+- [x] Criar página de preview do orçamento seguindo layout da imagem (2 páginas)
+- [x] Reescrever gerador de PDF profissional idêntico ao modelo
+- [x] Implementar rota Express para download de PDF
+- [x] Implementar QR Code PIX no PDF e preview
+- [x] Atualizar listagem de orçamentos com ações (preview, PDF, status)
+- [x] Testar compilação e funcionalidade

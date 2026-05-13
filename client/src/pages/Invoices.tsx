@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Search, FileText, Eye, Download } from "lucide-react";
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
 import { useCompany } from "@/contexts/CompanyContext";
@@ -21,6 +22,7 @@ const statusColors: Record<string, string> = {
 
 export default function Invoices() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [, navigate] = useLocation();
   const { activeCompany } = useCompany();
 
   const { data: invoices, isLoading } = trpc.invoices.list.useQuery(
@@ -41,7 +43,7 @@ export default function Invoices() {
             <h1 className="text-3xl font-bold text-foreground">Faturas</h1>
             <p className="text-muted-foreground mt-2">Gerencie todas as suas faturas</p>
           </div>
-          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2" disabled>
+          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2" onClick={() => navigate("/invoices/new")}>
             <Plus className="w-4 h-4" />
             Nova Fatura
           </Button>

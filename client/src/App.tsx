@@ -9,7 +9,10 @@ import { useAuth } from "./_core/hooks/useAuth";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Quotations from "./pages/Quotations";
+import CreateQuotation from "./pages/CreateQuotation";
+import QuotationPreview from "./pages/QuotationPreview";
 import Invoices from "./pages/Invoices";
+import CreateInvoice from "./pages/CreateInvoice";
 import Customers from "./pages/Customers";
 import Products from "./pages/Products";
 import Professionals from "./pages/Professionals";
@@ -51,7 +54,10 @@ function Router() {
   return (
     <Switch>
       <Route path={"/dashboard"} component={Dashboard} />
+      <Route path={"/quotations/new"} component={CreateQuotation} />
+      <Route path={"/quotations/:id/preview"} component={QuotationPreview} />
       <Route path={"/quotations"} component={Quotations} />
+      <Route path={"/invoices/new"} component={CreateInvoice} />
       <Route path={"/invoices"} component={Invoices} />
       <Route path={"/customers"} component={Customers} />
       <Route path={"/products"} component={Products} />
