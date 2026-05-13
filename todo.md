@@ -74,28 +74,13 @@
 
 
 ## Testes de Funcionalidades
-- [x] Testar navegação do menu sidebar (todos os links) - OK
-- [x] Testar CRUD de Clientes (criar, listar) - OK com invalidação de cache
-- [x] Testar CRUD de Produtos (criar, listar) - OK com invalidação de cache
-- [x] Testar CRUD de Profissionais (criar, listar) - OK com invalidação de cache
-- [x] Testar botões de ação rápida no Dashboard - OK (desabilitados por enquanto)
-- [x] Testar links de navegação entre páginas - OK
-- [x] Testar autenticação (login/logout) - OK
-- [x] Testar página de validação pública - OK
-- [x] Testar configurações e personalização - OK
-- [x] Corrigir bugs encontrados durante testes - Implementadas validações, toasts e invalidação de cache
-
-
-## Fase 11: Integração Firebase Realtime Database
-- [x] Instalar dependências do Firebase (firebase, firebase-admin)
-- [x] Configurar variáveis de ambiente (Firebase credentials)
-- [x] Criar serviço de sincronização com Firebase (firebase-admin.ts + firebase-sync.ts)
-- [ ] Sincronizar dados de Clientes em tempo real (integrar nos procedures tRPC)
-- [ ] Sincronizar dados de Produtos em tempo real (integrar nos procedures tRPC)
-- [ ] Sincronizar dados de Profissionais em tempo real (integrar nos procedures tRPC)
-- [ ] Sincronizar dados de Orçamentos em tempo real
-- [ ] Sincronizar dados de Faturas em tempo real
-- [ ] Implementar listeners em tempo real no frontend
-- [ ] Testar sincronização bidirecional MySQL <-> Firebase
-- [ ] Implementar fallback caso Firebase indisponível
-- [ ] Documentar arquitetura de sincronização
+- [ ] Testar navegação do menu sidebar (todos os links)
+- [ ] Testar CRUD de Clientes (criar, listar, editar, deletar)
+- [ ] Testar CRUD de Produtos (criar, listar, editar, deletar)
+- [ ] Testar CRUD de Profissionais (criar, listar, editar, deletar)
+- [ ] Testar botões de ação rápida no Dashboard
+- [ ] Testar links de navegação entre páginas
+- [ ] Testar autenticação (login/logout)
+- [ ] Testar página de validação pública
+- [ ] Testar configurações e personalização
+- [ ] Corrigir bugs encontrados durante testes
