@@ -4,61 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SettingsIcon, Palette, FileText, Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { SettingsIcon, Palette, FileText } from "lucide-react";
+import { useState } from "react";
 import { useCompany } from "@/contexts/CompanyContext";
-import { trpc } from "@/lib/trpc";
-import { toast } from "sonner";
 
 export default function Settings() {
   const { activeCompany } = useCompany();
-  const utils = trpc.useUtils();
-  
-  // Form states
-  const [companyName, setCompanyName] = useState("");
-  const [companyEmail, setCompanyEmail] = useState("");
-  const [companyPhone, setCompanyPhone] = useState("");
-  const [companyAddress, setCompanyAddress] = useState("");
-  const [validityDays, setValidityDays] = useState("30");
   const [selectedTheme, setSelectedTheme] = useState("minimalista");
-  const [primaryColor, setPrimaryColor] = useState("#FF8C00");
-  const [secondaryColor, setSecondaryColor] = useState("#1B5E20");
-
-  // Mutations
-  const updateCompanyMutation = trpc.company.update.useMutation({
-    onSuccess: () => {
-      utils.company.list.invalidate();
-      toast.success("Empresa atualizada com sucesso!");
-    },
-    onError: (error) => {
-      toast.error("Erro ao atualizar: " + (error.message || "Tente novamente"));
-    },
-  });
-
-  // Initialize form with active company data
-  useEffect(() => {
-    if (activeCompany) {
-      setCompanyName(activeCompany.name || "");
-      setCompanyEmail(activeCompany.email || "");
-      setCompanyPhone(activeCompany.phone || "");
-      setCompanyAddress(activeCompany.address || "");
-      
-      // Load saved theme preferences
-      const savedTheme = localStorage.getItem(`theme-${activeCompany.id}`);
-      if (savedTheme) setSelectedTheme(savedTheme);
-      
-      const savedColors = localStorage.getItem(`colors-${activeCompany.id}`);
-      if (savedColors) {
-        try {
-          const colors = JSON.parse(savedColors);
-          setPrimaryColor(colors.primary || "#FF8C00");
-          setSecondaryColor(colors.secondary || "#1B5E20");
-        } catch (e) {
-          // Ignore parse errors
-        }
-      }
-    }
-  }, [activeCompany]);
+  const [primaryColor, setPrimaryColor] = useState("#2563eb");
+  const [secondaryColor, setSecondaryColor] = useState("#f3f4f6");
 
   const themes = [
     {
@@ -80,62 +34,6 @@ export default function Settings() {
       preview: "bg-slate-100 border-2 border-slate-600",
     },
   ];
-
-  const handleUpdateCompany = async () => {
-    if (!activeCompany) {
-      toast.error("Nenhuma empresa selecionada");
-      return;
-    }
-
-    if (!companyName.trim()) {
-      toast.error("Nome da empresa é obrigatório");
-      return;
-    }
-
-    try {
-      await updateCompanyMutation.mutateAsync({
-        id: activeCompany.id,
-        name: companyName,
-        email: companyEmail || undefined,
-        phone: companyPhone || undefined,
-        address: companyAddress || undefined,
-      });
-    } catch (error) {
-      console.error("Erro:", error);
-    }
-  };
-
-  const handleSaveTheme = () => {
-    if (!activeCompany) {
-      toast.error("Nenhuma empresa selecionada");
-      return;
-    }
-
-    try {
-      localStorage.setItem(`theme-${activeCompany.id}`, selectedTheme);
-      localStorage.setItem(`colors-${activeCompany.id}`, JSON.stringify({
-        primary: primaryColor,
-        secondary: secondaryColor,
-      }));
-      toast.success("Tema salvo com sucesso!");
-    } catch (error) {
-      toast.error("Erro ao salvar tema");
-    }
-  };
-
-  if (!activeCompany) {
-    return (
-      <AppLayout>
-        <div className="p-6 md:p-8 max-w-4xl mx-auto">
-          <Card className="border-0 shadow-sm">
-            <CardContent className="pt-6 text-center text-muted-foreground">
-              Selecione uma empresa para acessar as configurações
-            </CardContent>
-          </Card>
-        </div>
-      </AppLayout>
-    );
-  }
 
   return (
     <AppLayout>
@@ -172,18 +70,16 @@ export default function Settings() {
                     <Label htmlFor="company-name">Nome da Empresa</Label>
                     <Input
                       id="company-name"
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                      placeholder="Nome da empresa"
+                      defaultValue={activeCompany?.name}
+                      disabled
                     />
                   </div>
                   <div>
                     <Label htmlFor="company-document">CNPJ</Label>
                     <Input
                       id="company-document"
-                      value={activeCompany.document || ""}
+                      defaultValue={activeCompany?.document}
                       disabled
-                      className="bg-muted"
                     />
                   </div>
                 </div>
@@ -192,19 +88,16 @@ export default function Settings() {
                     <Label htmlFor="company-email">E-mail</Label>
                     <Input
                       id="company-email"
-                      type="email"
-                      value={companyEmail}
-                      onChange={(e) => setCompanyEmail(e.target.value)}
-                      placeholder="email@empresa.com"
+                      defaultValue={activeCompany?.email || ""}
+                      disabled
                     />
                   </div>
                   <div>
                     <Label htmlFor="company-phone">Telefone</Label>
                     <Input
                       id="company-phone"
-                      value={companyPhone}
-                      onChange={(e) => setCompanyPhone(e.target.value)}
-                      placeholder="(11) 99999-9999"
+                      defaultValue={activeCompany?.phone || ""}
+                      disabled
                     />
                   </div>
                 </div>
@@ -212,24 +105,12 @@ export default function Settings() {
                   <Label htmlFor="company-address">Endereço</Label>
                   <Input
                     id="company-address"
-                    value={companyAddress}
-                    onChange={(e) => setCompanyAddress(e.target.value)}
-                    placeholder="Rua, número, cidade, estado"
+                    defaultValue={activeCompany?.address || ""}
+                    disabled
                   />
                 </div>
-                <Button
-                  onClick={handleUpdateCompany}
-                  disabled={updateCompanyMutation.isPending}
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                >
-                  {updateCompanyMutation.isPending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Salvando...
-                    </>
-                  ) : (
-                    "Salvar Alterações"
-                  )}
+                <Button disabled className="w-full">
+                  Editar Empresa
                 </Button>
               </CardContent>
             </Card>
@@ -250,9 +131,9 @@ export default function Settings() {
               <CardContent className="space-y-6">
                 <div>
                   <Label>Logo da Empresa</Label>
-                  <div className="mt-2 p-4 border-2 border-dashed border-primary/30 rounded-lg text-center bg-primary/5">
-                    <p className="text-muted-foreground mb-2">Clique para fazer upload da logo</p>
-                    <Button variant="outline" className="border-primary text-primary hover:bg-primary/10">
+                  <div className="mt-2 p-4 border-2 border-dashed border-slate-300 rounded-lg text-center">
+                    <p className="text-slate-500 mb-2">Clique para fazer upload da logo</p>
+                    <Button variant="outline" disabled>
                       Selecionar Arquivo
                     </Button>
                   </div>
@@ -260,9 +141,9 @@ export default function Settings() {
 
                 <div>
                   <Label>Marca d'água</Label>
-                  <div className="mt-2 p-4 border-2 border-dashed border-primary/30 rounded-lg text-center bg-primary/5">
-                    <p className="text-muted-foreground mb-2">Clique para fazer upload da marca d'água</p>
-                    <Button variant="outline" className="border-primary text-primary hover:bg-primary/10">
+                  <div className="mt-2 p-4 border-2 border-dashed border-slate-300 rounded-lg text-center">
+                    <p className="text-slate-500 mb-2">Clique para fazer upload da marca d'água</p>
+                    <Button variant="outline" disabled>
                       Selecionar Arquivo
                     </Button>
                   </div>
@@ -273,25 +154,20 @@ export default function Settings() {
                   <Input
                     id="validity-days"
                     type="number"
-                    value={validityDays}
-                    onChange={(e) => setValidityDays(e.target.value)}
                     placeholder="30"
+                    disabled
                   />
                 </div>
 
                 <div>
                   <Label htmlFor="custom-fields">Campos Personalizados</Label>
-                  <p className="text-sm text-muted-foreground mt-2">
+                  <p className="text-sm text-slate-500 mt-2">
                     Adicione campos customizados aos seus documentos
                   </p>
-                  <Button variant="outline" className="mt-2 border-primary text-primary hover:bg-primary/10">
+                  <Button variant="outline" className="mt-2" disabled>
                     + Adicionar Campo
                   </Button>
                 </div>
-
-                <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-                  Salvar Configurações de Documentos
-                </Button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -315,8 +191,8 @@ export default function Settings() {
                       key={theme.id}
                       className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
                         selectedTheme === theme.id
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-primary/50"
+                          ? "border-blue-600 bg-blue-50"
+                          : "border-border hover:border-slate-300"
                       }`}
                       onClick={() => setSelectedTheme(theme.id)}
                     >
@@ -374,23 +250,8 @@ export default function Settings() {
                   </div>
                 </div>
 
-                <div className="p-4 bg-muted rounded-lg">
-                  <p className="text-sm text-muted-foreground mb-3">Prévia das cores:</p>
-                  <div className="flex gap-4">
-                    <div className="flex-1 p-4 rounded" style={{ backgroundColor: primaryColor }}>
-                      <p className="text-white text-sm font-semibold">Primária</p>
-                    </div>
-                    <div className="flex-1 p-4 rounded" style={{ backgroundColor: secondaryColor }}>
-                      <p className="text-white text-sm font-semibold">Secundária</p>
-                    </div>
-                  </div>
-                </div>
-
-                <Button
-                  onClick={handleSaveTheme}
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                >
-                  Salvar Tema
+                <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled>
+                  Salvar Cores
                 </Button>
               </CardContent>
             </Card>

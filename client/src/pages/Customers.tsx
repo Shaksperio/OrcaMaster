@@ -10,7 +10,6 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
 import { useCompany } from "@/contexts/CompanyContext";
-import { toast } from "sonner";
 
 export default function Customers() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -28,34 +27,17 @@ export default function Customers() {
   });
 
   const { activeCompany } = useCompany();
-  const utils = trpc.useUtils();
 
   const { data: customers, isLoading } = trpc.customers.list.useQuery(
     { companyId: activeCompany?.id || 0 },
     { enabled: !!activeCompany?.id }
   );
 
-  const createCustomerMutation = trpc.customers.create.useMutation({
-    onSuccess: () => {
-      // Invalidar cache para refetch automático
-      utils.customers.list.invalidate({ companyId: activeCompany?.id });
-      toast.success("Cliente criado com sucesso!");
-    },
-    onError: (error) => {
-      toast.error("Erro ao criar cliente: " + (error.message || "Tente novamente"));
-    },
-  });
+  const createCustomerMutation = trpc.customers.create.useMutation();
 
   const handleCreateCustomer = async () => {
     try {
-      if (!activeCompany) {
-        toast.error("Selecione uma empresa primeiro");
-        return;
-      }
-      if (!formData.name.trim()) {
-        toast.error("Nome do cliente é obrigatório");
-        return;
-      }
+      if (!activeCompany) return;
       await createCustomerMutation.mutateAsync({
         companyId: activeCompany.id,
         ...formData,
@@ -93,7 +75,7 @@ export default function Customers() {
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-primary/90 gap-2 text-primary-foreground">
+              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2">
                 <Plus className="w-4 h-4" />
                 Novo Cliente
               </Button>
@@ -165,10 +147,11 @@ export default function Customers() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="state">Estado</Label>
+                    <Label htmlFor="state">UF</Label>
                     <Input
                       id="state"
                       placeholder="SP"
+                      maxLength={2}
                       value={formData.state}
                       onChange={(e) => setFormData({ ...formData, state: e.target.value })}
                     />
@@ -187,24 +170,17 @@ export default function Customers() {
                   <Label htmlFor="notes">Observações</Label>
                   <Textarea
                     id="notes"
-                    placeholder="Notas adicionais sobre o cliente"
+                    placeholder="Observações adicionais"
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   />
                 </div>
                 <Button
                   onClick={handleCreateCustomer}
-                  disabled={createCustomerMutation.isPending}
+                  disabled={createCustomerMutation.isPending || !formData.name}
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
-                  {createCustomerMutation.isPending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Criando...
-                    </>
-                  ) : (
-                    "Criar Cliente"
-                  )}
+                  {createCustomerMutation.isPending ? "Criando..." : "Criar Cliente"}
                 </Button>
               </div>
             </DialogContent>
@@ -212,64 +188,58 @@ export default function Customers() {
         </div>
 
         {/* Search */}
-        <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 w-5 h-5 text-muted-foreground" />
-            <Input
-              placeholder="Buscar cliente por nome ou CPF/CNPJ..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </div>
-
-        {/* Customers List */}
-        <Card className="border-0 shadow-sm">
-          <CardHeader>
-            <CardTitle>Lista de Clientes</CardTitle>
-            <CardDescription>
-              Total: {filteredCustomers.length} cliente{filteredCustomers.length !== 1 ? "s" : ""}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+        <Card className="mb-6 border-0 shadow-sm">
+          <CardContent className="pt-6">
+            <div className="flex gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                <Input
+                  placeholder="Buscar por nome ou documento..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
               </div>
-            ) : filteredCustomers.length === 0 ? (
-              <div className="text-center py-8">
-                <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">Nenhum cliente encontrado</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {filteredCustomers.map((customer) => (
-                  <div
-                    key={customer.id}
-                    className="flex items-center justify-between p-4 bg-muted rounded-lg hover:bg-muted/80 transition-colors"
-                  >
-                    <div>
-                      <p className="font-medium text-foreground">{customer.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {customer.document && `${customer.document} • `}
-                        {customer.email}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      {customer.phone && (
-                        <p className="text-sm text-foreground">{customer.phone}</p>
-                      )}
-                      {customer.city && (
-                        <p className="text-sm text-muted-foreground">{customer.city}, {customer.state}</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            </div>
           </CardContent>
         </Card>
+
+        {/* Customers Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {isLoading ? (
+            <div className="col-span-full flex items-center justify-center py-12">
+              <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+            </div>
+          ) : filteredCustomers.length === 0 ? (
+            <div className="col-span-full text-center py-12">
+              <Users className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+              <p className="text-slate-500">Nenhum cliente encontrado</p>
+            </div>
+          ) : (
+            filteredCustomers.map((customer: any) => (
+              <Card key={customer.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <CardTitle className="text-lg">{customer.name}</CardTitle>
+                      <CardDescription>{customer.document || "Sem documento"}</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  {customer.email && <p className="text-muted-foreground">📧 {customer.email}</p>}
+                  {customer.phone && <p className="text-muted-foreground">📱 {customer.phone}</p>}
+                  {customer.address && <p className="text-muted-foreground">📍 {customer.address}</p>}
+                  {(customer.city || customer.state) && (
+                    <p className="text-muted-foreground">
+                      {customer.city} {customer.state && `- ${customer.state}`}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
       </div>
     </AppLayout>
   );

@@ -10,7 +10,6 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
 import { useCompany } from "@/contexts/CompanyContext";
-import { toast } from "sonner";
 
 export default function Products() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -32,28 +31,11 @@ export default function Products() {
     { enabled: !!activeCompany?.id }
   );
 
-  const utils = trpc.useUtils();
-
-  const createProductMutation = trpc.products.create.useMutation({
-    onSuccess: () => {
-      utils.products.list.invalidate({ companyId: activeCompany?.id });
-      toast.success("Produto criado com sucesso!");
-    },
-    onError: (error) => {
-      toast.error("Erro ao criar produto: " + (error.message || "Tente novamente"));
-    },
-  });
+  const createProductMutation = trpc.products.create.useMutation();
 
   const handleCreateProduct = async () => {
     try {
-      if (!activeCompany) {
-        toast.error("Selecione uma empresa primeiro");
-        return;
-      }
-      if (!formData.name.trim()) {
-        toast.error("Nome do produto é obrigatório");
-        return;
-      }
+      if (!activeCompany) return;
       await createProductMutation.mutateAsync({
         companyId: activeCompany.id,
         name: formData.name,
@@ -180,17 +162,10 @@ export default function Products() {
                 </div>
                 <Button
                   onClick={handleCreateProduct}
-                  disabled={createProductMutation.isPending}
+                  disabled={createProductMutation.isPending || !formData.name || !formData.price}
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
-                  {createProductMutation.isPending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Criando...
-                    </>
-                  ) : (
-                    "Criar Produto"
-                  )}
+                  {createProductMutation.isPending ? "Criando..." : "Criar Produto"}
                 </Button>
               </div>
             </DialogContent>
@@ -202,7 +177,7 @@ export default function Products() {
           <CardContent className="pt-6">
             <div className="flex gap-4">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
                 <Input
                   placeholder="Buscar por nome ou SKU..."
                   value={searchTerm}
@@ -223,12 +198,12 @@ export default function Products() {
           <CardContent>
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
               </div>
             ) : filteredProducts.length === 0 ? (
               <div className="text-center py-12">
-                <Package className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">Nenhum produto encontrado</p>
+                <Package className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                <p className="text-slate-500">Nenhum produto encontrado</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -244,7 +219,7 @@ export default function Products() {
                   </thead>
                   <tbody>
                     {filteredProducts.map((product: any) => (
-                      <tr key={product.id} className="border-b border-border hover:bg-muted transition-colors">
+                      <tr key={product.id} className="border-b border-slate-100 hover:bg-muted transition-colors">
                         <td className="py-3 px-4 font-medium text-foreground">{product.name}</td>
                         <td className="py-3 px-4 text-muted-foreground">{product.sku || "-"}</td>
                         <td className="py-3 px-4 text-muted-foreground">{product.category || "-"}</td>
