@@ -39,6 +39,7 @@ export function registerPdfRoutes(app: Express) {
       // Generate PDF
       const pdfBuffer = await generateQuotationPDF({
         number: quotation.number,
+        status: quotation.status,
         createdAt: quotation.createdAt,
         validUntil: quotation.validUntil,
         companyName: company.name,
@@ -50,6 +51,7 @@ export function registerPdfRoutes(app: Express) {
         companyState: company.state || undefined,
         companyZipCode: company.zipCode || undefined,
         companyLogoUrl: company.logoUrl || undefined,
+        companyLogoStorageKey: company.logoStorageKey || undefined,
         clientName: client.name,
         clientDocument: client.document || undefined,
         clientEmail: client.email || undefined,

@@ -145,3 +145,24 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [x] Testar estados idle, loading, erro, vazio e resultados nos componentes de busca
 - [x] Testar mapeamento dos botões Adicionar/Usar para o cadastro local
 - [x] Validar fallbacks Leroy e SINAPI com testes automatizados
+
+## Fase 8 - PDF, impressão e compartilhamento conforme modelo anexado
+- [x] Analisar PDF de referência e comparar com o gerador atual
+- [x] Ajustar layout do PDF para reproduzir cabeçalho, blocos, tabela, condições, totais, QR Code e assinaturas do modelo
+- [x] Ajustar preview HTML para manter o mesmo layout do PDF
+- [x] Validar botão de gerar/baixar PDF
+- [x] Validar impressão usando o mesmo modelo visual
+- [x] Implementar compartilhamento por WhatsApp com mensagem e link do orçamento
+- [x] Implementar compartilhamento por e-mail com assunto, mensagem e link do orçamento
+- [x] Adicionar testes do PDF, impressão e compartilhamento
+- [ ] Salvar checkpoint e atualizar o GitHub
+
+### Validação adicional do fluxo de documento
+- [x] Adicionar teste do fluxo cliente → rota real de geração/baixar PDF, cobrindo sucesso e erro
+- [x] Adicionar teste do fluxo de impressão e dos estilos `@media print`/`data-print-target`
+- [x] Adicionar teste automatizado das ações de PDF e compartilhamento nas páginas de orçamento
+
+### Testes de interface do orçamento
+- [x] Adicionar teste de integração do componente QuotationPreview para a ação Gerar PDF
+- [x] Adicionar teste de integração do componente QuotationPreview para Imprimir e data-print-target
+- [x] Adicionar testes de e-mail e WhatsApp acionados pelo componente QuotationPreview

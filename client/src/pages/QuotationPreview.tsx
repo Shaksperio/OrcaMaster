@@ -1,346 +1,170 @@
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, Printer, Loader2 } from "lucide-react";
+import { ArrowLeft, Download, Printer, Loader2, Mail, MessageCircle } from "lucide-react";
 import { trpc } from "@/lib/trpc";
-import { useCompany } from "@/contexts/CompanyContext";
 import { useLocation, useParams } from "wouter";
-import { useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import QRCode from "qrcode";
+import { buildEmailShareUrl, buildQuotationShareMessage, buildWhatsAppShareUrl } from "@/lib/quotation-sharing";
+import { buildQuotationPdfUrl, buildQuotationPrintStyles, printQuotation } from "@/lib/quotation-document-actions";
 
 function formatDate(date: string | Date | null | undefined): string {
   if (!date) return "—";
-  const d = typeof date === "string" ? new Date(date) : date;
-  return d.toLocaleDateString("pt-BR");
+  const parsed = typeof date === "string" ? new Date(date) : date;
+  return Number.isNaN(parsed.getTime()) ? "—" : parsed.toLocaleDateString("pt-BR");
 }
 
 function formatCurrency(value: string | number | null | undefined): string {
-  const num = typeof value === "string" ? parseFloat(value) : (value || 0);
+  const num = typeof value === "string" ? parseFloat(value) : Number(value || 0);
   return num.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function formatNumber(value: string | number | null | undefined): string {
-  const num = typeof value === "string" ? parseFloat(value) : (value || 0);
-  return num.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  const num = typeof value === "string" ? parseFloat(value) : Number(value || 0);
+  return num.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
+
+const statusLabels: Record<string, string> = {
+  rascunho: "RASCUNHO",
+  enviado: "ENVIADO",
+  aprovado: "APROVADO",
+  rejeitado: "REJEITADO",
+  vencido: "VENCIDO",
+  convertido: "CONVERTIDO",
+};
 
 export default function QuotationPreview() {
   const [, navigate] = useLocation();
   const params = useParams<{ id: string }>();
   const printRef = useRef<HTMLDivElement>(null);
-
+  const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const { data, isLoading, error } = trpc.quotations.get.useQuery(
     { id: Number(params.id) },
-    { enabled: !!params.id }
+    { enabled: Boolean(params.id) }
   );
 
-  const handlePrint = () => {
-    window.print();
-  };
+  const company = data?.company;
+  const client = data?.client;
+  const items = data?.items || [];
+  const subtotal = Number(data?.subtotal || 0);
+  const discount = Number(data?.discount || 0);
+  const total = Number(data?.total || 0);
+  const issPct = Number(data?.issPercentage || 0);
+  const icmsPct = Number(data?.icmsPercentage || 0);
+  const issValue = subtotal * (issPct / 100);
+  const icmsValue = subtotal * (icmsPct / 100);
+  const firstPageItems = items.slice(0, 7);
+  const secondPageItems = items.slice(7);
+  const status = statusLabels[data?.status || "rascunho"] || String(data?.status || "RASCUNHO").toUpperCase();
 
-  const handleDownloadPdf = () => {
-    window.open(`/api/quotations/${params.id}/pdf`, "_blank");
+  useEffect(() => {
+    if (!data) return;
+    const payload = data.pixKey || `${window.location.origin}/validate/${data.number}`;
+    QRCode.toDataURL(payload, { width: 180, margin: 1, errorCorrectionLevel: "M" })
+      .then(setQrCodeUrl)
+      .catch(() => setQrCodeUrl(""));
+  }, [data]);
+
+  const shareMessage = useMemo(() => {
+    if (!data) return "";
+    return buildQuotationShareMessage(window.location.origin, data.number, data.total);
+  }, [data]);
+
+  const handlePrint = () => printQuotation(() => window.print());
+  const handleDownloadPdf = () => window.open(buildQuotationPdfUrl(params.id || ""), "_blank", "noopener,noreferrer");
+  const handleWhatsApp = () => window.open(buildWhatsAppShareUrl(shareMessage), "_blank", "noopener,noreferrer");
+  const handleEmail = () => {
+    const recipient = client?.email || "";
+    const subject = `Orçamento ${data?.number || ""}`;
+    window.open(buildEmailShareUrl(recipient, subject, shareMessage), "_self");
   };
 
   if (isLoading) {
-    return (
-      <AppLayout>
-        <div className="flex items-center justify-center h-96">
-          <Loader2 className="w-8 h-8 animate-spin text-[#1B5E20]" />
-        </div>
-      </AppLayout>
-    );
+    return <AppLayout><div className="flex h-96 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-[#D8921B]" /></div></AppLayout>;
   }
-
   if (error || !data) {
-    return (
-      <AppLayout>
-        <div className="p-8 text-center">
-          <p className="text-red-600">Erro ao carregar orçamento</p>
-          <Button variant="outline" onClick={() => navigate("/quotations")} className="mt-4">
-            Voltar
-          </Button>
-        </div>
-      </AppLayout>
-    );
+    return <AppLayout><div className="p-8 text-center"><p className="text-red-600">Erro ao carregar orçamento</p><Button variant="outline" onClick={() => navigate("/quotations")} className="mt-4">Voltar</Button></div></AppLayout>;
   }
 
-  const company = data.company;
-  const client = data.client;
-  const items = data.items || [];
-  const subtotal = parseFloat(String(data.subtotal)) || 0;
-  const issPct = parseFloat(String(data.issPercentage)) || 0;
-  const icmsPct = parseFloat(String(data.icmsPercentage)) || 0;
-  const issVal = subtotal * (issPct / 100);
-  const icmsVal = subtotal * (icmsPct / 100);
-  const total = parseFloat(String(data.total)) || 0;
-
-  const GREEN = "#1B5E20";
-  const LIGHT_GREEN = "#E8F5E9";
+  const companyAddress = [company?.address, company?.city, company?.state].filter(Boolean).join(" - ");
+  const clientAddress = [client?.address, client?.city, client?.state].filter(Boolean).join(" - ");
 
   return (
     <AppLayout>
-      {/* Action bar - hidden on print */}
-      <div className="p-4 md:p-6 flex items-center justify-between print:hidden">
-        <Button variant="ghost" size="sm" onClick={() => navigate("/quotations")} className="gap-2">
-          <ArrowLeft className="w-4 h-4" />
-          Voltar
-        </Button>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handlePrint} className="gap-2">
-            <Printer className="w-4 h-4" />
-            Imprimir
-          </Button>
-          <Button size="sm" onClick={handleDownloadPdf} className="gap-2 bg-[#1B5E20] hover:bg-[#1B5E20]/90 text-white">
-            <Download className="w-4 h-4" />
-            Baixar PDF
-          </Button>
+      <div className="print:hidden flex flex-wrap items-center justify-between gap-3 p-4 md:p-6">
+        <Button variant="ghost" size="sm" onClick={() => navigate("/quotations")} className="gap-2"><ArrowLeft className="h-4 w-4" />Voltar</Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" onClick={handlePrint} className="gap-2"><Printer className="h-4 w-4" />Imprimir</Button>
+          <Button variant="outline" size="sm" onClick={handleEmail} className="gap-2"><Mail className="h-4 w-4" />E-mail</Button>
+          <Button variant="outline" size="sm" onClick={handleWhatsApp} className="gap-2 border-green-600 text-green-700 hover:bg-green-50"><MessageCircle className="h-4 w-4" />WhatsApp</Button>
+          <Button size="sm" onClick={handleDownloadPdf} className="gap-2 bg-[#D8921B] text-white hover:bg-[#B97812]"><Download className="h-4 w-4" />Gerar PDF</Button>
         </div>
       </div>
 
-      {/* Preview container */}
-      <div className="flex justify-center pb-8 print:pb-0">
-        <div
-          ref={printRef}
-          className="bg-white text-black w-full max-w-[210mm] shadow-lg print:shadow-none print:max-w-none"
-          style={{ fontFamily: "Arial, Helvetica, sans-serif" }}
-        >
-          {/* ===== PAGE 1 ===== */}
-          <div className="p-8 print:p-[15mm]" style={{ minHeight: "297mm" }}>
-            {/* Company Header */}
-            <div className="flex justify-between items-start mb-6">
+      <div className="flex justify-center pb-8 print:p-0">
+        <div ref={printRef} data-print-target className="quotation-document w-full max-w-[210mm] bg-white text-[#333] shadow-lg print:max-w-none print:shadow-none" style={{ fontFamily: "Arial, Helvetica, sans-serif" }}>
+          <section className="quotation-page min-h-[297mm] p-[14mm] print:min-h-0">
+            <header className="relative min-h-[44mm]">
+              {company?.logoUrl ? <img src={company.logoUrl} alt="Logo da empresa" className="absolute left-0 top-0 h-[25mm] w-[30mm] object-contain object-left" /> : <div className="absolute left-0 top-0 flex h-[24mm] w-[28mm] items-center justify-center rounded bg-[#D8921B] text-2xl font-bold text-white">OM</div>}
+              <div className="ml-[34mm] pt-[25mm] text-[10px] leading-tight">
+                <p className="font-bold">{company?.name || "Empresa"}</p>
+                {companyAddress && <p>End.: {companyAddress}</p>}
+                {company?.phone && <p>Telefone: {company.phone}</p>}
+                {company?.email && <p>E-mail: {company.email}</p>}
+                {company?.document && <p>CNPJ: {company.document}</p>}
+              </div>
+              <div className="absolute right-0 top-0 text-right">
+                <span className="inline-block border border-[#999] px-2 py-1 text-[10px] text-[#777]">{status}</span>
+                <h1 className="mt-1 text-[28px] leading-none text-[#111]">Orçamento</h1>
+                <p className="mt-1 text-[10px] font-bold"># {data.number}</p>
+              </div>
+            </header>
+
+            <div className="grid grid-cols-2 gap-5 text-[10px] leading-tight">
               <div>
-                <h1 className="text-xl font-bold" style={{ color: GREEN }}>{company?.name || "Empresa"}</h1>
-                <div className="text-xs text-gray-600 mt-1 space-y-0.5">
-                  {company?.address && <p>End.: {company.address}{company.city ? `, ${company.city}` : ""}{company.state ? `, ${company.state}` : ""}{company.zipCode ? ` - ${company.zipCode}` : ""}</p>}
-                  {company?.phone && <p>Mobile: {company.phone}</p>}
-                  {company?.email && <p>Email: {company.email}</p>}
-                  {company?.document && <p>CNPJ: {company.document}</p>}
-                </div>
+                <h2 className="border-b border-[#D8921B] pb-1 font-bold uppercase">Cliente:</h2>
+                <p className="mt-2 font-bold">{client?.name || "—"}</p>
+                {client?.phone && <p>Celular: {client.phone}</p>}
+                {client?.email && <p>E-mail: {client.email}</p>}
+                {client?.document && <p>CPF/CNPJ: {client.document}</p>}
               </div>
-              {company?.logoUrl && (
-                <img src={company.logoUrl} alt="Logo" className="h-16 w-auto object-contain" />
-              )}
-            </div>
-
-            {/* Divider */}
-            <div className="h-1 w-full mb-4" style={{ backgroundColor: GREEN }} />
-
-            {/* Contratante + Local da Obra + Número */}
-            <div className="grid grid-cols-12 gap-4 mb-6">
-              {/* Contratante */}
-              <div className="col-span-4">
-                <h3 className="text-xs font-bold mb-1 px-2 py-1 text-white" style={{ backgroundColor: GREEN }}>CONTRATANTE</h3>
-                <div className="text-xs space-y-0.5 mt-1">
-                  <p className="font-semibold">{client?.name || "—"}</p>
-                  {client?.document && <p>CPF/CNPJ: {client.document}</p>}
-                  {client?.phone && <p>Telefone: {client.phone}</p>}
-                  {client?.email && <p>E-mail: {client.email}</p>}
-                  {client?.address && (
-                    <p>Endereço: {client.address}{client.city ? `, ${client.city}` : ""}{client.state ? ` - ${client.state}` : ""}{client.zipCode ? `, ${client.zipCode}` : ""}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Local da Obra */}
-              <div className="col-span-4">
-                <h3 className="text-xs font-bold mb-1 px-2 py-1 text-white" style={{ backgroundColor: GREEN }}>LOCAL DA OBRA</h3>
-                <div className="text-xs mt-1">
-                  <p>{data.workLocation || "—"}</p>
-                </div>
-              </div>
-
-              {/* Número e Datas */}
-              <div className="col-span-4">
-                <div className="border border-gray-300">
-                  <div className="flex justify-between items-center px-2 py-1 border-b border-gray-300">
-                    <span className="text-xs font-bold" style={{ color: GREEN }}>EST./N.°:</span>
-                    <span className="text-lg font-bold">{data.number}</span>
-                  </div>
-                  <div className="flex justify-between px-2 py-0.5 border-b border-gray-200 text-xs">
-                    <span className="font-semibold">DATA PDO.:</span>
-                    <span>{formatDate(data.createdAt)}</span>
-                  </div>
-                  <div className="flex justify-between px-2 py-0.5 text-xs">
-                    <span className="font-semibold">DATA VAL.:</span>
-                    <span>{formatDate(data.validUntil)}</span>
-                  </div>
-                </div>
+              <div>
+                <h2 className="border-b border-[#D8921B] pb-1 font-bold uppercase">Dados do orçamento:</h2>
+                <p className="mt-2 flex justify-between"><span>Data do PDO.:</span><span>{formatDate(data.createdAt)}</span></p>
+                <p className="flex justify-between"><span>Validade do PDO.:</span><span>{formatDate(data.validUntil)}</span></p>
+                <p className="flex justify-between"><span>Atendimento por:</span><span>{company?.name || "—"}</span></p>
+                <p className="flex justify-between"><span>Prazo de entrega:</span><span>{data.deliveryEstimate || "—"}</span></p>
+                <p className="flex justify-between"><span>Mão-de-obra + materiais inclusos:</span><span>SIM.</span></p>
               </div>
             </div>
+            <div className="mt-4 text-[10px]"><h2 className="font-bold uppercase">Local da obra:</h2><p>{data.workLocation || "Não informado"}</p>{clientAddress && <p>Endereço: {clientAddress}</p>}</div>
 
-            {/* Items Table */}
-            <table className="w-full text-xs border-collapse mb-6">
-              <thead>
-                <tr style={{ backgroundColor: GREEN, color: "white" }}>
-                  <th className="text-left px-2 py-1.5 font-bold">DESCRIÇÃO</th>
-                  <th className="text-left px-2 py-1.5 font-bold">ITEM</th>
-                  <th className="text-right px-2 py-1.5 font-bold">M²/QTD.</th>
-                  <th className="text-right px-2 py-1.5 font-bold">PREÇO/UN.</th>
-                  <th className="text-right px-2 py-1.5 font-bold">VALOR</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item, idx) => (
-                  <tr key={item.id} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"} style={{ borderBottom: "1px solid #e5e7eb" }}>
-                    <td className="px-2 py-2">{item.description}</td>
-                    <td className="px-2 py-2">{item.itemType || "—"}</td>
-                    <td className="px-2 py-2 text-right">{formatNumber(item.quantity)}</td>
-                    <td className="px-2 py-2 text-right">{formatCurrency(item.unitPrice)}</td>
-                    <td className="px-2 py-2 text-right font-semibold">{formatCurrency(item.total)}</td>
-                  </tr>
-                ))}
-              </tbody>
+            <table className="mt-5 w-full border-collapse text-[9px]">
+              <thead><tr className="bg-[#D8921B] text-white"><th className="w-[7%] px-2 py-1 text-left">Nº</th><th className="w-[57%] px-2 py-1 text-left">TIPO DE SERVIÇO &amp; PRODUTO</th><th className="w-[12%] px-2 py-1 text-right">QTD /m²</th><th className="w-[12%] px-2 py-1 text-right">PREÇO/UN</th><th className="w-[12%] px-2 py-1 text-right">VALOR</th></tr></thead>
+              <tbody>{firstPageItems.map((item: any, index: number) => <tr key={item.id || index} className="border-b border-[#B9B9B9] align-top"><td className="px-2 py-2">{index + 1}</td><td className="px-2 py-2"><p>{item.description}</p>{item.itemType && <p className="text-[8px] text-[#777]">{item.itemType}</p>}</td><td className="px-2 py-2 text-right">{formatNumber(item.quantity)}</td><td className="px-2 py-2 text-right">{formatCurrency(item.unitPrice)}</td><td className="px-2 py-2 text-right">{formatCurrency(item.total)}</td></tr>)}</tbody>
             </table>
+            <div className="mt-auto flex justify-end pt-6 text-[9px] text-[#777]">1</div>
+          </section>
 
-            {/* Condições de Pagamento */}
-            {data.paymentConditions && (
-              <div className="mb-6">
-                <h3 className="text-xs font-bold mb-2 underline" style={{ color: GREEN }}>
-                  CONDIÇÕES DE PAGAMENTO (Art. 40, CDC e Arts. 417-420, CC):
-                </h3>
-                <div className="text-xs whitespace-pre-wrap leading-relaxed border border-gray-200 p-3 rounded">
-                  {data.paymentConditions}
-                </div>
-              </div>
-            )}
+          <section className="quotation-page min-h-[297mm] border-t border-dashed border-[#B9B9B9] p-[14mm] print:border-0 print:min-h-0">
+            <table className="w-full border-collapse text-[9px]"><thead><tr className="bg-[#D8921B] text-white"><th className="w-[7%] px-2 py-1 text-left">Nº</th><th className="w-[57%] px-2 py-1 text-left">TIPO DE SERVIÇO &amp; PRODUTO</th><th className="w-[12%] px-2 py-1 text-right">QTD /m²</th><th className="w-[12%] px-2 py-1 text-right">PREÇO/UN</th><th className="w-[12%] px-2 py-1 text-right">VALOR</th></tr></thead><tbody>{secondPageItems.map((item: any, index: number) => <tr key={item.id || index} className="border-b border-[#B9B9B9] align-top"><td className="px-2 py-2">{index + 8}</td><td className="px-2 py-2"><p>{item.description}</p>{item.itemType && <p className="text-[8px] text-[#777]">{item.itemType}</p>}</td><td className="px-2 py-2 text-right">{formatNumber(item.quantity)}</td><td className="px-2 py-2 text-right">{formatCurrency(item.unitPrice)}</td><td className="px-2 py-2 text-right">{formatCurrency(item.total)}</td></tr>)}</tbody></table>
 
-            {/* Page footer */}
-            <div className="text-right text-xs text-gray-400 mt-auto pt-4">
-              Page 1 of 2
-            </div>
-          </div>
+            <div className="mt-4 ml-auto w-[42%] text-[10px]"><div className="flex justify-between border-b border-[#B9B9B9] py-1"><span>Subtotal</span><span>{formatCurrency(subtotal)}</span></div>{discount > 0 && <div className="flex justify-between border-b border-[#B9B9B9] py-1"><span>Desconto</span><span>- {formatCurrency(discount)}</span></div>}<div className="flex justify-between border-b-2 border-[#D8921B] py-2 font-bold"><span>Total</span><span>R$ {formatCurrency(total)}</span></div></div>
 
-          {/* ===== PAGE 2 ===== */}
-          <div className="p-8 print:p-[15mm] border-t-2 border-dashed border-gray-300 print:border-none" style={{ minHeight: "297mm", pageBreakBefore: "always" }}>
-            {/* Meios de Pagamento + Totais */}
-            <div className="grid grid-cols-2 gap-6 mb-6">
-              {/* Left: Meios de pagamento + QR Code */}
-              <div>
-                {data.paymentMethodDescription && (
-                  <div className="mb-4">
-                    <h3 className="text-xs font-semibold mb-1">3. Meios de pagamento:</h3>
-                    <p className="text-xs leading-relaxed">{data.paymentMethodDescription}</p>
-                  </div>
-                )}
+            <div className="mt-6 text-[9px]"><h2 className="border-b border-[#D8921B] pb-1 font-bold uppercase">Condições de pagamento</h2><p className="mt-2 whitespace-pre-wrap leading-relaxed">{data.paymentConditions || data.paymentTerms || "Condições de pagamento não informadas."}</p></div>
+            {data.paymentMethodDescription && <div className="mt-4 text-[9px]"><p className="font-bold">Forma de pagamento:</p><p>{data.paymentMethodDescription}</p></div>}
 
-                {/* QR Code */}
-                {data.pixKey && (
-                  <div className="mt-3">
-                    <p className="text-xs font-bold mb-2" style={{ color: GREEN }}>QR Code</p>
-                    <div className="flex gap-3 items-start">
-                      <div className="w-20 h-20 border border-gray-300 flex items-center justify-center bg-white">
-                        {data.qrCodeUrl ? (
-                          <img src={data.qrCodeUrl} alt="QR Code PIX" className="w-full h-full object-contain" />
-                        ) : (
-                          <div className="text-[8px] text-gray-400 text-center">QR Code<br />PIX</div>
-                        )}
-                      </div>
-                      <div className="text-xs space-y-0.5">
-                        {data.pixHolder && <p><strong>Titular:</strong> {data.pixHolder}</p>}
-                        {data.pixBank && <p><strong>Banco:</strong> {data.pixBank}</p>}
-                        {data.pixKey && <p><strong>Chave PIX:</strong> {data.pixKey}</p>}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+            <div className="mt-4 flex items-start gap-3 text-[9px]">{qrCodeUrl ? <img src={qrCodeUrl} alt="QR Code para pagamento" className="h-[28mm] w-[28mm]" /> : <div className="h-[28mm] w-[28mm] border border-[#999]" />}<div><p className="font-bold">DADOS PARA PAGAMENTO</p>{data.pixHolder && <p>Titular: {data.pixHolder}</p>}{data.pixBank && <p>Banco: {data.pixBank}</p>}{data.pixKey && <p>Chave PIX: {data.pixKey}</p>}</div></div>
 
-              {/* Right: Totals table */}
-              <div>
-                <table className="w-full text-sm">
-                  <tbody>
-                    <tr className="border-b border-gray-200">
-                      <td className="py-1.5 font-bold text-right pr-4">SUBTOTAL</td>
-                      <td className="py-1.5 text-right font-semibold">R$ {formatCurrency(subtotal)}</td>
-                    </tr>
-                    {issPct > 0 && (
-                      <tr className="border-b border-gray-200">
-                        <td className="py-1.5 text-right pr-4">ISS ({issPct}%)</td>
-                        <td className="py-1.5 text-right">R$ {formatCurrency(issVal)}</td>
-                      </tr>
-                    )}
-                    {icmsPct > 0 && (
-                      <tr className="border-b border-gray-200">
-                        <td className="py-1.5 text-right pr-4">ICMS ({icmsPct}%)</td>
-                        <td className="py-1.5 text-right">R$ {formatCurrency(icmsVal)}</td>
-                      </tr>
-                    )}
-                    <tr style={{ backgroundColor: GREEN, color: "white" }}>
-                      <td className="py-2 font-bold text-right pr-4">VALOR TOTAL</td>
-                      <td className="py-2 text-right font-bold text-base">R$ {formatCurrency(total)}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Descrição dos Serviços Contratados */}
-            {data.serviceDescription && (
-              <div className="mb-6">
-                <h3 className="text-xs font-bold mb-1 underline" style={{ color: GREEN }}>
-                  DESCRIÇÃO DOS SERVIÇOS CONTRATADOS:
-                </h3>
-                <div className="text-xs whitespace-pre-wrap leading-relaxed">
-                  {data.serviceDescription}
-                </div>
-              </div>
-            )}
-
-            {/* Prazo de Entrega Estimado */}
-            {data.deliveryEstimate && (
-              <div className="mb-6">
-                <h3 className="text-xs font-bold mb-1 underline" style={{ color: GREEN }}>
-                  PRAZO DE ENTREGA ESTIMADO:
-                </h3>
-                <div className="text-xs whitespace-pre-wrap leading-relaxed">
-                  {data.deliveryEstimate}
-                </div>
-              </div>
-            )}
-
-            {/* Aviso Legal */}
-            {data.legalNotice && (
-              <div className="mb-8 border border-gray-400 p-3 rounded">
-                <p className="text-xs leading-relaxed">{data.legalNotice}</p>
-              </div>
-            )}
-
-            {/* Assinaturas */}
-            <div className="grid grid-cols-2 gap-12 mt-12">
-              <div className="text-center">
-                <div className="border-b border-gray-400 mb-2 h-16" />
-                <p className="text-xs font-bold">{company?.name || "Empresa"}</p>
-              </div>
-              <div className="text-center">
-                <div className="border-b border-gray-400 mb-2 h-16" />
-                <p className="text-xs font-bold">{client?.name || "Contratante"}</p>
-              </div>
-            </div>
-
-            {/* Page footer */}
-            <div className="text-right text-xs text-gray-400 mt-auto pt-8">
-              Page 2 of 2
-            </div>
-          </div>
+            {data.serviceDescription && <div className="mt-5 text-[9px]"><h2 className="border-b border-[#D8921B] pb-1 font-bold uppercase">Descrição dos serviços contratados</h2><p className="mt-2 whitespace-pre-wrap leading-relaxed">{data.serviceDescription}</p></div>}
+            {data.legalNotice && <div className="mt-5 border border-[#D8921B] p-2 text-[8px] leading-relaxed">{data.legalNotice}</div>}
+            <div className="mt-10 w-[62%] text-center text-[9px]"><div className="border-b border-[#333]" /><p className="mt-1">Ass. {company?.name || "Responsável"}</p></div>
+            <div className="mt-auto flex justify-end pt-6 text-[9px] text-[#777]">2</div>
+          </section>
         </div>
       </div>
 
-      {/* Print styles */}
-      <style>{`
-        @media print {
-          body * { visibility: hidden; }
-          .print\\:hidden { display: none !important; }
-          [class*="AppLayout"] > *:not(:last-child) { display: none !important; }
-          ${printRef.current ? `#${printRef.current.id},` : ""}
-          [data-print-target],
-          [data-print-target] * {
-            visibility: visible;
-          }
-          @page {
-            size: A4;
-            margin: 0;
-          }
-        }
-      `}</style>
+      <style>{buildQuotationPrintStyles()}</style>
     </AppLayout>
   );
 }

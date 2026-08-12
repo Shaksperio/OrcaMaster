@@ -3,13 +3,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Plus, Search, FileText, Eye, Download, MoreHorizontal, Send, CheckCircle, XCircle, RefreshCw, Loader2 } from "lucide-react";
+import { Plus, Search, FileText, Eye, Download, MoreHorizontal, Send, CheckCircle, XCircle, RefreshCw, Loader2, Mail, MessageCircle } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useCompany } from "@/contexts/CompanyContext";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { buildEmailShareUrl, buildQuotationShareMessage, buildWhatsAppShareUrl } from "@/lib/quotation-sharing";
+import { buildQuotationPdfUrl } from "@/lib/quotation-document-actions";
 
 const statusColors: Record<string, string> = {
   rascunho: "bg-muted text-muted-foreground",
@@ -67,6 +69,19 @@ export default function Quotations() {
   });
 
   const customerMap = new Map(customers.map(c => [c.id, c.name]));
+  const customerEmailMap = new Map(customers.map(c => [c.id, c.email || ""]));
+
+  const buildShareMessage = (quotation: any) => buildQuotationShareMessage(window.location.origin, quotation.number, quotation.total);
+
+  const shareWhatsApp = (quotation: any) => {
+    window.open(buildWhatsAppShareUrl(buildShareMessage(quotation)), "_blank", "noopener,noreferrer");
+  };
+
+  const shareEmail = (quotation: any) => {
+    const subject = `Orçamento ${quotation.number}`;
+    const recipient = customerEmailMap.get(quotation.clientId) || "";
+    window.location.href = buildEmailShareUrl(recipient, subject, buildShareMessage(quotation));
+  };
 
   const filteredQuotations = quotations?.filter(q =>
     q.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -180,7 +195,7 @@ export default function Quotations() {
                               variant="ghost"
                               size="sm"
                               className="gap-1 text-xs"
-                              onClick={() => window.open(`/api/quotations/${quotation.id}/pdf`, "_blank")}
+                              onClick={() => window.open(buildQuotationPdfUrl(quotation.id), "_blank", "noopener,noreferrer")}
                             >
                               <Download className="w-3.5 h-3.5" />
                               PDF
@@ -211,6 +226,14 @@ export default function Quotations() {
                                   </DropdownMenuItem>
                                 )}
                                 <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => shareEmail(quotation)}>
+                                  <Mail className="mr-2 h-4 w-4" />
+                                  Compartilhar por e-mail
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => shareWhatsApp(quotation)}>
+                                  <MessageCircle className="mr-2 h-4 w-4" />
+                                  Compartilhar por WhatsApp
+                                </DropdownMenuItem>
                                 {quotation.status === "aprovado" && (
                                   <DropdownMenuItem onClick={() => convertMutation.mutate({ id: quotation.id })}>
                                     <RefreshCw className="w-4 h-4 mr-2" />
