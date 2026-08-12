@@ -101,8 +101,8 @@ export default function QuotationPreview() {
         </div>
       </div>
 
-      <div className="flex justify-center pb-8 print:p-0">
-        <div ref={printRef} data-print-target className="quotation-document w-full max-w-[210mm] bg-white text-[#333] shadow-lg print:max-w-none print:shadow-none" style={{ fontFamily: "Arial, Helvetica, sans-serif" }}>
+      <div className="flex justify-center pb-8 px-2 sm:px-4 print:p-0 overflow-x-auto">
+        <div ref={printRef} data-print-target className="quotation-document w-[210mm] min-w-[210mm] bg-white text-[#333] shadow-lg print:max-w-none print:shadow-none" style={{ fontFamily: "Arial, Helvetica, sans-serif" }}>
           <section className="quotation-page min-h-[297mm] p-[14mm] print:min-h-0">
             <header className="relative min-h-[44mm]">
               {company?.logoUrl ? <img src={company.logoUrl} alt="Logo da empresa" className="absolute left-0 top-0 h-[25mm] w-[30mm] object-contain object-left" /> : <div className="absolute left-0 top-0 flex h-[24mm] w-[28mm] items-center justify-center rounded bg-[#D8921B] text-2xl font-bold text-white">OM</div>}

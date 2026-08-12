@@ -429,3 +429,10 @@ export async function convertQuotationToInvoice(quotationId: number): Promise<{ 
 
   return { invoiceId, invoiceNumber };
 }
+
+export async function deleteQuotation(quotationId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(quotationItems).where(eq(quotationItems.quotationId, quotationId));
+  await db.delete(quotations).where(eq(quotations.id, quotationId));
+}

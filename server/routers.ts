@@ -539,6 +539,125 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        clientId: z.number(),
+        description: z.string().optional(),
+        notes: z.string().optional(),
+        discount: z.string().or(z.number()).optional(),
+        discountPercentage: z.string().or(z.number()).optional(),
+        tax: z.string().or(z.number()).optional(),
+        validUntil: z.string().optional(),
+        paymentTerms: z.string().optional(),
+        workLocation: z.string().optional(),
+        issPercentage: z.string().or(z.number()).optional(),
+        icmsPercentage: z.string().or(z.number()).optional(),
+        pixHolder: z.string().optional(),
+        pixBank: z.string().optional(),
+        pixKey: z.string().optional(),
+        paymentConditions: z.string().optional(),
+        paymentMethodDescription: z.string().optional(),
+        serviceDescription: z.string().optional(),
+        deliveryEstimate: z.string().optional(),
+        legalNotice: z.string().optional(),
+        items: z.array(z.object({
+          productId: z.number().nullable().optional(),
+          description: z.string().min(1),
+          itemType: z.string().optional(),
+          quantity: z.string().or(z.number()),
+          unit: z.string().optional(),
+          unitPrice: z.string().or(z.number()),
+          discount: z.string().or(z.number()).optional(),
+        })).min(1),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const quotation = await db.getQuotationById(input.id);
+        if (!quotation) throw new TRPCError({ code: "NOT_FOUND" });
+        const { isOwner, member } = await checkCompanyAccess(ctx.user.id, quotation.companyId);
+        if (!checkRolePermission(member?.role, isOwner, ["admin", "gerente"])) {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+
+        const processedItems = input.items.map(item => {
+          const qty = typeof item.quantity === "string" ? parseFloat(item.quantity) : item.quantity;
+          const price = typeof item.unitPrice === "string" ? parseFloat(item.unitPrice) : item.unitPrice;
+          const disc = item.discount ? (typeof item.discount === "string" ? parseFloat(item.discount) : item.discount) : 0;
+          const total = (qty * price) - disc;
+          return { ...item, quantity: String(qty), unitPrice: String(price), discount: String(disc), total: String(total) };
+        });
+
+        const subtotal = processedItems.reduce((sum, item) => sum + parseFloat(item.total), 0);
+        const discountVal = input.discount ? (typeof input.discount === "string" ? parseFloat(input.discount) : input.discount) : 0;
+        const discountPct = input.discountPercentage ? (typeof input.discountPercentage === "string" ? parseFloat(input.discountPercentage) : input.discountPercentage) : 0;
+        const effectiveDiscount = discountPct > 0 ? subtotal * (discountPct / 100) : discountVal;
+
+        const issPct = input.issPercentage ? (typeof input.issPercentage === "string" ? parseFloat(input.issPercentage) : input.issPercentage) : 0;
+        const icmsPct = input.icmsPercentage ? (typeof input.icmsPercentage === "string" ? parseFloat(input.icmsPercentage) : input.icmsPercentage) : 0;
+        const issVal = subtotal * (issPct / 100);
+        const icmsVal = subtotal * (icmsPct / 100);
+        const taxVal = issVal + icmsVal;
+        const total = subtotal - effectiveDiscount + taxVal;
+
+        await db.updateQuotation(input.id, {
+          clientId: input.clientId,
+          description: input.description,
+          notes: input.notes,
+          subtotal: String(subtotal) as any,
+          discount: String(effectiveDiscount) as any,
+          discountPercentage: String(discountPct) as any,
+          tax: String(taxVal) as any,
+          total: String(total) as any,
+          validUntil: input.validUntil ? new Date(input.validUntil) : undefined,
+          paymentTerms: input.paymentTerms,
+          workLocation: input.workLocation,
+          issPercentage: String(issPct) as any,
+          icmsPercentage: String(icmsPct) as any,
+          pixHolder: input.pixHolder,
+          pixBank: input.pixBank,
+          pixKey: input.pixKey,
+          paymentConditions: input.paymentConditions,
+          paymentMethodDescription: input.paymentMethodDescription,
+          serviceDescription: input.serviceDescription,
+          deliveryEstimate: input.deliveryEstimate,
+          legalNotice: input.legalNotice,
+        });
+
+        await db.deleteQuotationItems(input.id);
+        await db.createQuotationItems(
+          processedItems.map(item => ({
+            quotationId: input.id,
+            productId: item.productId ?? undefined,
+            description: item.description,
+            itemType: item.itemType,
+            quantity: item.quantity as any,
+            unit: item.unit,
+            unitPrice: item.unitPrice as any,
+            discount: item.discount as any,
+            total: item.total as any,
+          }))
+        );
+
+        const updated = await db.getQuotationById(input.id);
+        if (updated) {
+          syncToFirebase("quotation", input.id, { ...updated, items: processedItems }, { companyId: quotation.companyId });
+        }
+        return { success: true };
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        const quotation = await db.getQuotationById(input.id);
+        if (!quotation) throw new TRPCError({ code: "NOT_FOUND" });
+        const { isOwner, member } = await checkCompanyAccess(ctx.user.id, quotation.companyId);
+        if (!checkRolePermission(member?.role, isOwner, ["admin", "gerente"])) {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+        await db.deleteQuotation(input.id);
+        return { success: true };
+      }),
+
     convertToInvoice: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input, ctx }) => {

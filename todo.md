@@ -166,3 +166,11 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [x] Adicionar teste de integração do componente QuotationPreview para a ação Gerar PDF
 - [x] Adicionar teste de integração do componente QuotationPreview para Imprimir e data-print-target
 - [x] Adicionar testes de e-mail e WhatsApp acionados pelo componente QuotationPreview
+
+## Fase 11 - Edição Completa, Exclusão e Preview Responsivo de Orçamentos
+- [x] Garantir procedure tRPC de atualização completa de orçamentos (quotations.update com itens)
+- [x] Garantir procedure tRPC de exclusão de orçamentos (quotations.delete)
+- [x] Atualizar Quotations.tsx com ações explícitas (Visualizar, Editar, Excluir, PDF) na listagem e menu/botões responsivos
+- [x] Criar modal ou página de edição completa do orçamento com todos os campos e itens editáveis
+- [x] Garantir que QuotationPreview seja totalmente responsivo e limpo em telas menores
+- [x] Validar compilação, testes e build de produção

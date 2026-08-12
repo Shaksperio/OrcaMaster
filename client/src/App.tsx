@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Quotations from "./pages/Quotations";
 import CreateQuotation from "./pages/CreateQuotation";
+import EditQuotation from "./pages/EditQuotation";
 import QuotationPreview from "./pages/QuotationPreview";
 import Invoices from "./pages/Invoices";
 import CreateInvoice from "./pages/CreateInvoice";
@@ -55,6 +56,7 @@ function Router() {
     <Switch>
       <Route path={"/dashboard"} component={Dashboard} />
       <Route path={"/quotations/new"} component={CreateQuotation} />
+      <Route path={"/quotations/:id/edit"} component={EditQuotation} />
       <Route path={"/quotations/:id/preview"} component={QuotationPreview} />
       <Route path={"/quotations"} component={Quotations} />
       <Route path={"/invoices/new"} component={CreateInvoice} />

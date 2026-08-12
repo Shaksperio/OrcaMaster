@@ -57,6 +57,16 @@ export default function Quotations() {
     },
   });
 
+  const deleteMutation = trpc.quotations.delete.useMutation({
+    onSuccess: () => {
+      utils.quotations.list.invalidate({ companyId: activeCompany?.id });
+      toast.success("Orçamento excluído com sucesso!");
+    },
+    onError: (error) => {
+      toast.error("Erro ao excluir orçamento: " + error.message);
+    },
+  });
+
   const convertMutation = trpc.quotations.convertToInvoice.useMutation({
     onSuccess: (data) => {
       utils.quotations.list.invalidate({ companyId: activeCompany?.id });
@@ -181,12 +191,13 @@ export default function Quotations() {
                           {quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString("pt-BR") : "—"}
                         </td>
                         <td className="py-3 px-4 text-center">
-                          <div className="flex items-center justify-center gap-1">
+                            <div className="flex items-center justify-center gap-1">
                             <Button
                               variant="ghost"
                               size="sm"
                               className="gap-1 text-xs"
                               onClick={() => navigate(`/quotations/${quotation.id}/preview`)}
+                              title="Visualizar orçamento"
                             >
                               <Eye className="w-3.5 h-3.5" />
                               Ver
@@ -195,7 +206,18 @@ export default function Quotations() {
                               variant="ghost"
                               size="sm"
                               className="gap-1 text-xs"
+                              onClick={() => navigate(`/quotations/${quotation.id}/edit`)}
+                              title="Editar orçamento"
+                            >
+                              <FileText className="w-3.5 h-3.5" />
+                              Editar
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="gap-1 text-xs"
                               onClick={() => window.open(buildQuotationPdfUrl(quotation.id), "_blank", "noopener,noreferrer")}
+                              title="Baixar PDF"
                             >
                               <Download className="w-3.5 h-3.5" />
                               PDF
@@ -207,6 +229,19 @@ export default function Quotations() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => navigate(`/quotations/${quotation.id}/preview`)}>
+                                  <Eye className="w-4 h-4 mr-2" />
+                                  Visualizar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => navigate(`/quotations/${quotation.id}/edit`)}>
+                                  <FileText className="w-4 h-4 mr-2" />
+                                  Editar Orçamento
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => window.open(buildQuotationPdfUrl(quotation.id), "_blank", "noopener,noreferrer")}>
+                                  <Download className="w-4 h-4 mr-2" />
+                                  Gerar PDF
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
                                 {quotation.status === "rascunho" && (
                                   <DropdownMenuItem onClick={() => updateStatusMutation.mutate({ id: quotation.id, status: "enviado" })}>
                                     <Send className="w-4 h-4 mr-2" />
@@ -240,6 +275,18 @@ export default function Quotations() {
                                     Converter em Fatura
                                   </DropdownMenuItem>
                                 )}
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  className="text-red-600 focus:text-red-600"
+                                  onClick={() => {
+                                    if (confirm(`Tem certeza que deseja excluir o orçamento ${quotation.number}?`)) {
+                                      deleteMutation.mutate({ id: quotation.id });
+                                    }
+                                  }}
+                                >
+                                  <XCircle className="w-4 h-4 mr-2" />
+                                  Excluir
+                                </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>
