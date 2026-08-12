@@ -14,6 +14,7 @@ const navigationItems = [
   { label: "Dashboard", href: "/dashboard", icon: Home },
   { label: "Orçamentos", href: "/quotations", icon: FileText },
   { label: "Faturas", href: "/invoices", icon: BarChart3 },
+  { label: "Despesas & Contas", href: "/expenses", icon: Briefcase },
   { label: "Clientes", href: "/customers", icon: Users },
   { label: "Produtos", href: "/products", icon: Package },
   { label: "Profissionais", href: "/professionals", icon: Briefcase },

@@ -672,6 +672,82 @@ export const appRouter = router({
       }),
   }),
 
+  // Expenses procedures
+  expenses: router({
+    list: protectedProcedure
+      .input(z.object({ companyId: z.number() }))
+      .query(async ({ input, ctx }) => {
+        await checkCompanyAccess(ctx.user.id, input.companyId);
+        return db.getCompanyExpenses(input.companyId);
+      }),
+
+    create: protectedProcedure
+      .input(z.object({
+        companyId: z.number(),
+        description: z.string().min(1),
+        category: z.string().min(1),
+        amount: z.string().or(z.number()),
+        dueDate: z.string(),
+        supplierName: z.string().optional(),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        await checkCompanyAccess(ctx.user.id, input.companyId);
+        const expense = await db.createExpense({
+          companyId: input.companyId,
+          description: input.description,
+          category: input.category,
+          amount: String(input.amount) as any,
+          dueDate: new Date(input.dueDate),
+          supplierName: input.supplierName,
+          notes: input.notes,
+          status: "pendente",
+        });
+        return expense;
+      }),
+
+    updateStatus: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        status: z.enum(["pendente", "pago", "atrasado", "cancelado"]),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        await db.updateExpenseStatus(input.id, input.status);
+        return { success: true };
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        await db.deleteExpense(input.id);
+        return { success: true };
+      }),
+  }),
+
+  // Financial Reports procedures
+  reports: router({
+    summary: protectedProcedure
+      .input(z.object({ companyId: z.number() }))
+      .query(async ({ input, ctx }) => {
+        await checkCompanyAccess(ctx.user.id, input.companyId);
+        const invs = await db.getCompanyInvoices(input.companyId);
+        const exps = await db.getCompanyExpenses(input.companyId);
+
+        const totalInvoiced = invs.reduce((acc, i) => acc + Number(i.total || 0), 0);
+        const totalPaidInvoices = invs.filter(i => i.status === 'pago').reduce((acc, i) => acc + Number(i.total || 0), 0);
+        const totalExpenses = exps.reduce((acc, e) => acc + Number(e.amount || 0), 0);
+        const totalPaidExpenses = exps.filter(e => e.status === 'pago').reduce((acc, e) => acc + Number(e.amount || 0), 0);
+
+        return {
+          totalInvoiced,
+          totalPaidInvoices,
+          totalExpenses,
+          totalPaidExpenses,
+          netProfit: totalPaidInvoices - totalPaidExpenses,
+        };
+      }),
+  }),
+
   // Invoice procedures
   invoices: router({
     list: protectedProcedure

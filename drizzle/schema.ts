@@ -432,3 +432,27 @@ export const documentPdfs = mysqlTable("documentPdfs", {
 
 export type DocumentPdf = typeof documentPdfs.$inferSelect;
 export type InsertDocumentPdf = typeof documentPdfs.$inferInsert;
+
+/**
+ * Expenses table for financial control
+ */
+export const expenses = mysqlTable("expenses", {
+  id: int("id").autoincrement().primaryKey(),
+  companyId: int("companyId").notNull(),
+  description: varchar("description", { length: 255 }).notNull(),
+  category: varchar("category", { length: 100 }).notNull(),
+  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
+  dueDate: timestamp("dueDate").notNull(),
+  paidDate: timestamp("paidDate"),
+  status: mysqlEnum("status", ["pendente", "pago", "atrasado", "cancelado"]).default("pendente").notNull(),
+  supplierName: varchar("supplierName", { length: 255 }),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  companyIdIdx: index("expenses_companyId_idx").on(table.companyId),
+  statusIdx: index("expenses_status_idx").on(table.status),
+}));
+
+export type Expense = typeof expenses.$inferSelect;
+export type InsertExpense = typeof expenses.$inferInsert;

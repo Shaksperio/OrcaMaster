@@ -174,3 +174,10 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [x] Criar modal ou página de edição completa do orçamento com todos os campos e itens editáveis
 - [x] Garantir que QuotationPreview seja totalmente responsivo e limpo em telas menores
 - [x] Validar compilação, testes e build de produção
+
+## Fase 12 - Gestão Financeira Avançada (Despesas, Recebimentos e Fluxo de Caixa)
+- [x] Criar tabelas/esquemas para despesas e contas a pagar no drizzle/schema.ts
+- [x] Criar procedimentos tRPC para despesas e recebimentos no server/routers.ts
+- [x] Criar página de Gestão Financeira (Despesas e Fluxo de Caixa) na interface
+- [x] Validar integração mantendo todas as funcionalidades atuais intactas
+- [x] Executar testes automatizados, verificação de tipos e build de produção

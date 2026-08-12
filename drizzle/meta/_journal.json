@@ -15,6 +15,13 @@
       "when": 1778415671418,
       "tag": "0001_salty_triathlon",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1786509616459,
+      "tag": "0002_bizarre_the_watchers",
+      "breakpoints": true
     }
   ]
 }

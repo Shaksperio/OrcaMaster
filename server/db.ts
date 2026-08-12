@@ -1,6 +1,6 @@
 import { eq, and, desc, asc, sql, count } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, companies, clients, products, professionals, quotations, quotationItems, invoices, invoiceItems, companyMembers, themes } from "../drizzle/schema";
+import { InsertUser, users, companies, clients, products, professionals, quotations, quotationItems, invoices, invoiceItems, companyMembers, themes, expenses } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -435,4 +435,30 @@ export async function deleteQuotation(quotationId: number) {
   if (!db) throw new Error("Database not available");
   await db.delete(quotationItems).where(eq(quotationItems.quotationId, quotationId));
   await db.delete(quotations).where(eq(quotations.id, quotationId));
+}
+
+// Expense queries
+export async function getCompanyExpenses(companyId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(expenses).where(eq(expenses.companyId, companyId)).orderBy(desc(expenses.createdAt));
+}
+
+export async function createExpense(data: typeof expenses.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(expenses).values(data);
+  return result[0];
+}
+
+export async function updateExpenseStatus(id: number, status: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(expenses).set({ status: status as any, paidDate: status === 'pago' ? new Date() : null }).where(eq(expenses.id, id));
+}
+
+export async function deleteExpense(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(expenses).where(eq(expenses.id, id));
 }
