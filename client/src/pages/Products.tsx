@@ -11,6 +11,8 @@ import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
 import { useCompany } from "@/contexts/CompanyContext";
 import { toast } from "sonner";
+import { LeroyProductSearch, type LeroyProductSelection } from "@/components/LeroyProductSearch";
+import { SinapiSearch, type SinapiServiceSelection } from "@/components/SinapiSearch";
 
 export default function Products() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -77,6 +79,20 @@ export default function Products() {
     } catch (error) {
       console.error("Erro ao criar produto:", error);
     }
+  };
+
+  const handleExternalProductSelect = async (item: LeroyProductSelection | SinapiServiceSelection) => {
+    if (!activeCompany) throw new Error("Selecione uma empresa primeiro.");
+    await createProductMutation.mutateAsync({
+      companyId: activeCompany.id,
+      name: item.name,
+      description: item.description,
+      sku: item.sku,
+      category: item.category,
+      price: item.price,
+      unit: item.unit,
+      stock: 0,
+    });
   };
 
   const filteredProducts = products?.filter(p =>
@@ -196,6 +212,13 @@ export default function Products() {
             </DialogContent>
           </Dialog>
         </div>
+
+        {activeCompany && (
+          <>
+            <LeroyProductSearch companyId={activeCompany.id} onSelect={handleExternalProductSelect} />
+            <SinapiSearch companyId={activeCompany.id} onSelect={handleExternalProductSelect} />
+          </>
+        )}
 
         {/* Search */}
         <Card className="mb-6 border-0 shadow-sm">

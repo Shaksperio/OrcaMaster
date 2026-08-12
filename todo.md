@@ -127,3 +127,21 @@
 - [x] Corrigir persistência da marca d'água (criar theme default se não existir)
 - [x] Carregar watermarkUrl no Settings.tsx ao abrir página
 - [ ] Push para GitHub
+
+## Fase 7 - Busca Externa de Produtos (Leroy Merlin) e Serviços (SINAPI)
+- [x] Implementar procedure tRPC de busca Leroy Merlin (API real + fallback simulado)
+- [x] Implementar base de referência interna SINAPI (27 itens com preços 2024)
+- [x] Implementar procedure tRPC de busca SINAPI (scraping sinapi.app + web search + base interna)
+- [x] Criar componente frontend de busca Leroy Merlin na página de Produtos
+- [x] Criar componente frontend de busca SINAPI na página de Produtos (catálogo de produtos e serviços)
+- [x] Integrar resultados com cadastro local (botão + para adicionar)
+- [x] Implementar tags visuais (Leroy Merlin verde, SINAPI azul)
+- [x] Testar compilação e funcionalidade
+- [ ] Push para GitHub
+
+Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como avaliações, depoimentos ou conteúdo gerado de clientes.
+
+### Validação adicional da busca externa
+- [x] Testar estados idle, loading, erro, vazio e resultados nos componentes de busca
+- [x] Testar mapeamento dos botões Adicionar/Usar para o cadastro local
+- [x] Validar fallbacks Leroy e SINAPI com testes automatizados

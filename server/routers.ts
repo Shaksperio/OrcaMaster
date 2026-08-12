@@ -6,6 +6,7 @@ import { z } from "zod";
 import * as db from "./db";
 import { TRPCError } from "@trpc/server";
 import { syncToFirebase } from "./firebase-sync";
+import { searchLeroyMerlin, searchSinapi } from "./external-search";
 import { eq, and } from "drizzle-orm";
 import { companyMembers, companies } from "../drizzle/schema";
 
@@ -195,6 +196,24 @@ export const appRouter = router({
 
   // Product procedures
   products: router({
+    searchLeroy: protectedProcedure
+      .input(z.object({ companyId: z.number(), searchTerm: z.string().min(3) }))
+      .query(async ({ input, ctx }) => {
+        await checkCompanyAccess(ctx.user.id, input.companyId);
+        return searchLeroyMerlin(input.searchTerm);
+      }),
+
+    searchSinapi: protectedProcedure
+      .input(z.object({
+        companyId: z.number(),
+        searchTerm: z.string().min(3),
+        category: z.enum(["pintura", "impermeabilizacao"]).optional(),
+      }))
+      .query(async ({ input, ctx }) => {
+        await checkCompanyAccess(ctx.user.id, input.companyId);
+        return searchSinapi(input.searchTerm, input.category);
+      }),
+
     list: protectedProcedure
       .input(z.object({ companyId: z.number() }))
       .query(async ({ input, ctx }) => {
