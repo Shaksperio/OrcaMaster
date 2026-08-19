@@ -1,6 +1,6 @@
-import { eq, and, desc, asc, sql, count } from "drizzle-orm";
+import { eq, and, desc, asc, sql, count, isNotNull, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, companies, clients, products, professionals, quotations, quotationItems, invoices, invoiceItems, companyMembers, themes, expenses } from "../drizzle/schema";
+import { InsertUser, users, companies, clients, products, productPriceHistory, professionals, quotations, quotationItems, invoices, invoiceItems, companyMembers, themes, expenses } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -155,6 +155,31 @@ export async function createProduct(data: typeof products.$inferInsert) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const result = await db.insert(products).values(data);
+  return result[0];
+}
+
+export async function getSyncEnabledExternalProducts() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(products).where(and(
+    eq(products.syncEnabled, true),
+    isNotNull(products.externalUrl),
+    or(eq(products.sourceType, "external"), eq(products.priceSource, "external")),
+  )).orderBy(asc(products.id));
+}
+
+export async function updateProduct(productId: number, data: Partial<typeof products.$inferInsert>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(products).set(data).where(eq(products.id, productId));
+  const updated = await db.select().from(products).where(eq(products.id, productId)).limit(1);
+  return updated[0];
+}
+
+export async function addProductPriceHistory(data: typeof productPriceHistory.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(productPriceHistory).values(data);
   return result[0];
 }
 

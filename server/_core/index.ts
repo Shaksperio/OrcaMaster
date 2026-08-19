@@ -6,6 +6,7 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerStorageProxy } from "./storageProxy";
 import { registerPdfRoutes } from "../pdf-routes";
+import { productSyncHandler } from "../product-sync-route";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
@@ -38,6 +39,8 @@ async function startServer() {
   registerStorageProxy(app);
   registerOAuthRoutes(app);
   registerPdfRoutes(app);
+  // Heartbeat callback; authenticated cron identity is validated in the handler.
+  app.post("/api/scheduled/product-sync", productSyncHandler);
   // tRPC API
   app.use(
     "/api/trpc",
