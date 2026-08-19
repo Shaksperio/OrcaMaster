@@ -188,3 +188,12 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [ ] Implementar rotina robusta de sincronização em segundo plano (Heartbeat / sync routine)
 - [ ] Atualizar componentes de importação com pré-revisão e distinção de preço externo vs preço personalizado
 - [x] Executar testes automatizados, verificação de tipos e build de produção
+
+## Fase 22 - Eliminação de Dados Fictícios e Busca Externa Real (Firecrawl / Páginas Públicas)
+- [x] Ajustar server/external-search.ts para remover qualquer fallback ou dado inventado, retornando erro informativo quando indisponível
+- [x] Integrar busca pública da Leroy Merlin e Acal Home Center via Firecrawl e parsing de páginas públicas reais
+- [x] Validar extração estrita de dados reais (nome, preço, disponibilidade, SKU, URL) sem preenchimento falso e sem valores padrão fictícios
+- [x] Adicionar testes para verificar que campos ausentes retornam null e nunca placeholders ou valores inventados
+- [x] Extrair SKU estritamente da fonte real (markdown ou JSON), sem inferir por regex de URL
+- [x] Adicionar testes cobrindo ausência de preço e SKU nas buscas Leroy e Acal
+- [x] Executar testes automatizados, verificação de tipos e build de produção

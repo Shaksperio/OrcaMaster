@@ -30,14 +30,15 @@ export function getLeroySearchState(input: { hasSearched: boolean; isFetching: b
   return input.resultCount > 0 ? "results" : "empty";
 }
 
-export function mapLeroyResultToProduct(item: { name: string; brand?: string; type: string; coverage?: string; code?: string; price: number; unit: string }): LeroyProductSelection {
+export function mapLeroyResultToProduct(item: { name: string; brand?: string; type?: string; coverage?: string; code?: string; price?: number; unit?: string; category?: string }): LeroyProductSelection {
+  const paintType = item.type || "Acrílica";
   return {
     name: item.name,
-    description: `${item.brand ? `${item.brand} · ` : ""}${item.type}${item.coverage ? ` · Rendimento estimado: ${item.coverage}` : ""}`,
+    description: `${item.brand ? `${item.brand} · ` : ""}${paintType}${item.coverage ? ` · Rendimento estimado: ${item.coverage}` : ""}`,
     sku: item.code,
-    category: `Leroy Merlin · ${item.type}`,
-    price: item.price,
-    unit: item.unit,
+    category: `Leroy Merlin · ${paintType}`,
+    price: item.price ?? 0,
+    unit: item.unit || "un",
   };
 }
 
@@ -126,7 +127,7 @@ export function LeroyProductSearch({ companyId, onSelect }: Props) {
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center justify-between gap-3 sm:justify-end">
-                  <strong className="text-emerald-800">R$ {item.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</strong>
+                  <strong className="text-emerald-800">{item.price !== undefined ? `R$ ${item.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "Preço não informado"}</strong>
                   <Button size="sm" onClick={() => handleAdd(item)} disabled={addingCode === item.code} className="bg-emerald-700 text-white hover:bg-emerald-800">
                     {addingCode === item.code ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Plus className="mr-1 h-4 w-4" />}
                     Adicionar

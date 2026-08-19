@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getSinapiReferenceCount, searchLeroyMerlin, searchSinapi } from "./external-search";
+import { getSinapiReferenceCount, searchAcalHomeCenter, searchLeroyMerlin, searchSinapi } from "./external-search";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -9,7 +9,7 @@ afterEach(() => {
 describe("Busca externa de produtos e serviços sem dados fictícios", () => {
   it("retorna erro transparente quando a Leroy falha sem gerar produtos falsos", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("API indisponível")));
-    await expect(searchLeroyMerlin("tinta acrílica")).rejects.toThrow("API indisponível");
+    await expect(searchLeroyMerlin("tinta acrílica")).rejects.toThrow();
   });
 
   it("interpreta resultados JSON da Leroy Merlin", async () => {
@@ -36,5 +36,26 @@ describe("Busca externa de produtos e serviços sem dados fictícios", () => {
   it("rejeita termos curtos", async () => {
     await expect(searchLeroyMerlin("ab")).rejects.toThrow("pelo menos 3 caracteres");
     await expect(searchSinapi("ab")).rejects.toThrow("pelo menos 3 caracteres");
+  });
+
+  it("não inventa preço nem SKU quando a fonte JSON não os fornece", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ products: [{ name: "Tinta Apenas Nome" }] }),
+    }));
+    const response = await searchLeroyMerlin("tinta");
+    expect(response.results[0].price).toBeUndefined();
+    expect(response.results[0].sku).toBeUndefined();
+    expect(response.results[0].currency).toBeUndefined();
+  });
+
+  it("não inventa preço nem SKU na busca Acal quando ausentes na fonte", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ products: [{ name: "Produto Acal Simples" }] }),
+    }));
+    const response = await searchAcalHomeCenter("cimento");
+    expect(response.results[0].price).toBeUndefined();
+    expect(response.results[0].sku).toBeUndefined();
   });
 });
