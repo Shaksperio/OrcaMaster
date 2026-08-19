@@ -237,21 +237,21 @@ export default function EditQuotation() {
   return (
     <AppLayout>
       <div className="p-6 md:p-8 max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" onClick={() => navigate("/quotations")} className="gap-2">
+            <Button variant="outline" size="sm" onClick={() => navigate("/quotations")} className="gap-2 flex-shrink-0">
               <ArrowLeft className="w-4 h-4" />
               Voltar
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Editar Orçamento {quotation?.number}</h1>
-              <p className="text-muted-foreground text-sm">Atualize os campos, valores e itens do orçamento</p>
+              <h1 className="text-xl md:text-2xl font-bold text-foreground">Editar Orçamento {quotation?.number}</h1>
+              <p className="text-muted-foreground text-xs md:text-sm">Atualize os campos, valores e itens do orçamento</p>
             </div>
           </div>
           <Button
             type="submit"
             form="edit-quotation-form"
-            className="bg-[#1B5E20] hover:bg-[#1B5E20]/90 text-white gap-2"
+            className="bg-[#1B5E20] hover:bg-[#1B5E20]/90 text-white gap-2 w-full md:w-auto"
             disabled={updateMutation.isPending}
           >
             {updateMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
@@ -261,12 +261,14 @@ export default function EditQuotation() {
 
         <form id="edit-quotation-form" onSubmit={handleSubmit} className="space-y-6">
           <Tabs defaultValue="geral" className="w-full">
-            <TabsList className="grid grid-cols-4 w-full bg-muted p-1 rounded-lg">
-              <TabsTrigger value="geral" className="gap-2"><FileText className="w-4 h-4" /> Geral & Cliente</TabsTrigger>
-              <TabsTrigger value="itens" className="gap-2"><Plus className="w-4 h-4" /> Itens & Valores</TabsTrigger>
-              <TabsTrigger value="pagamento" className="gap-2"><CreditCard className="w-4 h-4" /> Pagamento & PIX</TabsTrigger>
-              <TabsTrigger value="termos" className="gap-2"><ScrollText className="w-4 h-4" /> Condições & Textos</TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto pb-2">
+              <TabsList className="inline-flex md:grid md:grid-cols-4 w-full bg-muted p-1 rounded-lg min-w-[600px] md:min-w-0">
+                <TabsTrigger value="geral" className="gap-2 text-xs md:text-sm"><FileText className="w-4 h-4 flex-shrink-0" /> Geral & Cliente</TabsTrigger>
+                <TabsTrigger value="itens" className="gap-2 text-xs md:text-sm"><Plus className="w-4 h-4 flex-shrink-0" /> Itens & Valores</TabsTrigger>
+                <TabsTrigger value="pagamento" className="gap-2 text-xs md:text-sm"><CreditCard className="w-4 h-4 flex-shrink-0" /> Pagamento & PIX</TabsTrigger>
+                <TabsTrigger value="termos" className="gap-2 text-xs md:text-sm"><ScrollText className="w-4 h-4 flex-shrink-0" /> Condições & Textos</TabsTrigger>
+              </TabsList>
+            </div>
 
             <TabsContent value="geral" className="space-y-6 pt-4">
               <Card className="border-0 shadow-sm">

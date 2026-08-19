@@ -204,3 +204,9 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [x] Adicionar botão flutuante de ação rápida (FAB) nas páginas principais para criação rápida
 - [x] Atualizar página de Configurações com seções categorizadas em estilo de lista limpa
 - [x] Executar testes automatizados, verificação de tipos e build de produção
+
+## Fase 17 - Correção de Layout e Responsividade em Edição de Orçamento e CRUDs
+- [x] Corrigir quebra de abas e sobreposição de rótulos em EditQuotation.tsx para dispositivos móveis
+- [x] Tornar o cabeçalho e os botões de ação (Voltar, Salvar) totalmente flexíveis e responsivos em EditQuotation.tsx
+- [x] Revisar margens, espaçamentos e grids em CreateQuotation.tsx e EditQuotation.tsx
+- [x] Validar testes automatizados e build de produção
