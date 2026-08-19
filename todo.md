@@ -198,3 +198,9 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [x] Atualizar AppLayout.tsx com gaveta lateral e grupos expansíveis (Vendas, Compras, Cadastros, Relatórios, Configurações)
 - [x] Integrar perfil de usuário e seletor de empresa no topo do menu lateral
 - [x] Validar testes automatizados e build de produção
+
+## Fase 16 - Aprimoramentos Visuais baseados no Zoho Books (Listas em Cartões, FAB Flutuante e Abas de Detalhes)
+- [x] Atualizar listagem de Clientes e Faturas com cards limpos, avatares e indicadores de status
+- [x] Adicionar botão flutuante de ação rápida (FAB) nas páginas principais para criação rápida
+- [x] Atualizar página de Configurações com seções categorizadas em estilo de lista limpa
+- [x] Executar testes automatizados, verificação de tipos e build de produção
