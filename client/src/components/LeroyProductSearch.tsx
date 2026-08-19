@@ -14,8 +14,6 @@ export type LeroyProductSelection = {
   category?: string;
   price: number;
   unit: string;
-  externalSource?: string;
-  externalSku?: string;
 };
 
 type Props = {
@@ -40,8 +38,6 @@ export function mapLeroyResultToProduct(item: { name: string; brand?: string; ty
     category: `Leroy Merlin · ${item.type}`,
     price: item.price,
     unit: item.unit,
-    externalSource: "Leroy Merlin",
-    externalSku: item.code,
   };
 }
 
@@ -107,11 +103,8 @@ export function LeroyProductSearch({ companyId, onSelect }: Props) {
         </div>
 
         {searchQuery.error && <p className="mt-3 text-sm text-red-700">{searchQuery.error.message}</p>}
-        {searchQuery.data?.error && (
-          <p className="mt-3 text-xs text-amber-700">Aviso do fornecedor: {searchQuery.data.error}</p>
-        )}
-        {searchQuery.data?.simulated && (
-          <p className="mt-1 text-[11px] text-amber-600">Exibindo dados simulados de contingência (servidor externo indisponível no momento).</p>
+        {searchQuery.data?.source && (
+          <p className="mt-3 text-xs text-slate-600">Fonte: {searchQuery.data.source}</p>
         )}
 
         {searchState === "empty" && (
@@ -126,7 +119,7 @@ export function LeroyProductSearch({ companyId, onSelect }: Props) {
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="font-medium text-slate-900">{item.name}</p>
                     <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">Leroy Merlin</Badge>
-                    {item.simulated && <Badge variant="outline" className="border-amber-300 text-amber-700">Referência simulada</Badge>}
+
                   </div>
                   <p className="mt-1 text-xs text-slate-500">
                     {[item.brand, item.code ? `SKU ${item.code}` : undefined, item.coverage].filter(Boolean).join(" · ") || "Produto consultado"}

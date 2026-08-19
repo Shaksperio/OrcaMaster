@@ -120,8 +120,14 @@ export const products = mysqlTable("products", {
   price: decimal("price", { precision: 12, scale: 2 }).notNull(),
   unit: varchar("unit", { length: 20 }), // un, m, m2, h, etc.
   stock: int("stock").default(0),
-  externalSource: varchar("externalSource", { length: 50 }), // 'Leroy Merlin' | 'Acal Home Center' | 'SINAPI'
+  sourceType: varchar("sourceType", { length: 20 }).default("manual").notNull(),
+  externalSource: varchar("externalSource", { length: 50 }),
   externalSku: varchar("externalSku", { length: 100 }),
+  externalUrl: text("externalUrl"),
+  externalStatus: varchar("externalStatus", { length: 30 }).default("active"),
+  syncEnabled: boolean("syncEnabled").default(true).notNull(),
+  priceSource: varchar("priceSource", { length: 20 }).default("manual").notNull(),
+  externalPrice: decimal("externalPrice", { precision: 12, scale: 2 }),
   lastSyncedAt: timestamp("lastSyncedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -129,6 +135,20 @@ export const products = mysqlTable("products", {
   companyIdIdx: index("products_companyId_idx").on(table.companyId),
   skuIdx: index("products_sku_idx").on(table.sku),
 }));
+
+export const productPriceHistory = mysqlTable("productPriceHistory", {
+  id: int("id").autoincrement().primaryKey(),
+  productId: int("productId").notNull(),
+  supplier: varchar("supplier", { length: 50 }).notNull(),
+  oldPrice: decimal("oldPrice", { precision: 12, scale: 2 }),
+  newPrice: decimal("newPrice", { precision: 12, scale: 2 }).notNull(),
+  changedAt: timestamp("changedAt").defaultNow().notNull(),
+}, (table) => ({
+  productIdIdx: index("productPriceHistory_productId_idx").on(table.productId),
+}));
+
+export type ProductPriceHistory = typeof productPriceHistory.$inferSelect;
+export type InsertProductPriceHistory = typeof productPriceHistory.$inferInsert;
 
 export type Product = typeof products.$inferSelect;
 export type InsertProduct = typeof products.$inferInsert;
@@ -459,26 +479,3 @@ export const expenses = mysqlTable("expenses", {
 
 export type Expense = typeof expenses.$inferSelect;
 export type InsertExpense = typeof expenses.$inferInsert;
-
-/**
- * Receivables table for tracking accounts receivable and incoming payments
- */
-export const receivables = mysqlTable("receivables", {
-  id: int("id").autoincrement().primaryKey(),
-  companyId: int("companyId").notNull(),
-  clientId: int("clientId"),
-  description: varchar("description", { length: 255 }).notNull(),
-  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
-  dueDate: timestamp("dueDate").notNull(),
-  receivedDate: timestamp("receivedDate"),
-  status: mysqlEnum("status", ["pendente", "recebido", "atrasado", "cancelado"]).default("pendente").notNull(),
-  notes: text("notes"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-}, (table) => ({
-  companyIdIdx: index("receivables_companyId_idx").on(table.companyId),
-  statusIdx: index("receivables_status_idx").on(table.status),
-}));
-
-export type Receivable = typeof receivables.$inferSelect;
-export type InsertReceivable = typeof receivables.$inferInsert;

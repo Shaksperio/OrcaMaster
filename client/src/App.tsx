@@ -15,7 +15,6 @@ import QuotationPreview from "./pages/QuotationPreview";
 import Invoices from "./pages/Invoices";
 import CreateInvoice from "./pages/CreateInvoice";
 import Expenses from "./pages/Expenses";
-import Receivables from "./pages/Receivables";
 import Customers from "./pages/Customers";
 import Products from "./pages/Products";
 import Professionals from "./pages/Professionals";
@@ -64,7 +63,6 @@ function Router() {
       <Route path={"/invoices/new"} component={CreateInvoice} />
       <Route path={"/invoices"} component={Invoices} />
       <Route path={"/expenses"} component={Expenses} />
-      <Route path={"/receivables"} component={Receivables} />
       <Route path={"/customers"} component={Customers} />
       <Route path={"/products"} component={Products} />
       <Route path={"/professionals"} component={Professionals} />

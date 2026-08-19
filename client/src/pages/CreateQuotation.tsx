@@ -217,26 +217,24 @@ export default function CreateQuotation() {
         </div>
 
         <Tabs defaultValue="geral" className="space-y-6">
-          <div className="overflow-x-auto pb-2">
-            <TabsList className="inline-flex md:grid w-full md:grid-cols-4 h-12 bg-muted p-1 rounded-lg min-w-[550px] md:min-w-0">
-              <TabsTrigger value="geral" className="gap-2 text-xs md:text-sm">
-                <Building2 className="w-4 h-4 flex-shrink-0" />
-                Geral
-              </TabsTrigger>
-              <TabsTrigger value="itens" className="gap-2 text-xs md:text-sm">
-                <FileText className="w-4 h-4 flex-shrink-0" />
-                Itens
-              </TabsTrigger>
-              <TabsTrigger value="pagamento" className="gap-2 text-xs md:text-sm">
-                <CreditCard className="w-4 h-4 flex-shrink-0" />
-                Pagamento
-              </TabsTrigger>
-              <TabsTrigger value="detalhes" className="gap-2 text-xs md:text-sm">
-                <ScrollText className="w-4 h-4 flex-shrink-0" />
-                Detalhes
-              </TabsTrigger>
-            </TabsList>
-          </div>
+          <TabsList className="grid w-full grid-cols-4 h-12">
+            <TabsTrigger value="geral" className="gap-2 text-sm">
+              <Building2 className="w-4 h-4" />
+              Geral
+            </TabsTrigger>
+            <TabsTrigger value="itens" className="gap-2 text-sm">
+              <FileText className="w-4 h-4" />
+              Itens
+            </TabsTrigger>
+            <TabsTrigger value="pagamento" className="gap-2 text-sm">
+              <CreditCard className="w-4 h-4" />
+              Pagamento
+            </TabsTrigger>
+            <TabsTrigger value="detalhes" className="gap-2 text-sm">
+              <ScrollText className="w-4 h-4" />
+              Detalhes
+            </TabsTrigger>
+          </TabsList>
 
           {/* ===== ABA GERAL ===== */}
           <TabsContent value="geral" className="space-y-6">

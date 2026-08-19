@@ -1,22 +1,23 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { AppLayout } from "@/components/AppLayout";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, FileText, ArrowRight, Loader2 } from "lucide-react";
+import { Plus, Search, FileText, Eye, Download } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { Loader2 } from "lucide-react";
 import { useCompany } from "@/contexts/CompanyContext";
 import { Input } from "@/components/ui/input";
-import { AppLayout } from "@/components/AppLayout";
 
 const statusColors: Record<string, string> = {
-  rascunho: "bg-slate-100 text-slate-700",
+  rascunho: "bg-muted text-muted-foreground",
   enviado: "bg-blue-100 text-blue-700",
   aprovado: "bg-green-100 text-green-700",
   parcialmente_pago: "bg-yellow-100 text-yellow-700",
   pago: "bg-green-100 text-green-700",
-  vencido: "bg-red-100 text-red-700",
-  cancelado: "bg-slate-100 text-slate-500",
+  vencido: "bg-primary/10 text-primary",
+  cancelado: "bg-red-100 text-red-700",
 };
 
 export default function Invoices() {
@@ -33,88 +34,98 @@ export default function Invoices() {
     i.number.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
-  const formatCurrency = (val: any) => Number(val || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-
   return (
     <AppLayout>
-      <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="p-6 md:p-8 max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">Faturas</h1>
-            <p className="text-sm text-muted-foreground mt-1">Gerencie suas faturas e acompanhe vencimentos</p>
+            <h1 className="text-3xl font-bold text-foreground">Faturas</h1>
+            <p className="text-muted-foreground mt-2">Gerencie todas as suas faturas</p>
           </div>
-          <Button className="hidden md:flex bg-[#1B5E20] hover:bg-[#1B5E20]/90 text-white gap-2" onClick={() => navigate("/invoices/new")}>
+          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2" onClick={() => navigate("/invoices/new")}>
             <Plus className="w-4 h-4" />
             Nova Fatura
           </Button>
         </div>
 
         {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por número da fatura..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 h-11 bg-card shadow-sm border-border"
-          />
-        </div>
+        <Card className="mb-6 border-0 shadow-sm">
+          <CardContent className="pt-6">
+            <div className="flex gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                <Input
+                  placeholder="Buscar por número..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Invoices List */}
-        {isLoading ? (
-          <div className="flex justify-center py-16">
-            <Loader2 className="w-8 h-8 animate-spin text-[#1B5E20]" />
-          </div>
-        ) : filteredInvoices.length === 0 ? (
-          <Card className="border-0 shadow-sm text-center py-16 bg-card">
-            <CardContent>
-              <FileText className="w-12 h-12 mx-auto text-muted-foreground/50 mb-4" />
-              <h3 className="text-lg font-semibold text-foreground">Nenhuma fatura encontrada</h3>
-              <p className="text-sm text-muted-foreground mt-1">Converta um orçamento ou crie sua primeira fatura.</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-3">
-            {filteredInvoices.map((invoice: any) => (
-              <div key={invoice.id} className="bg-card border border-border/60 rounded-xl p-4 shadow-sm hover:shadow transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-12 h-12 rounded-xl bg-orange-500/10 text-orange-600 font-bold flex items-center justify-center text-sm flex-shrink-0">
-                    <FileText className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-foreground text-base">Fatura #{invoice.number}</h3>
-                      <Badge className={statusColors[invoice.status] || "bg-slate-100 text-slate-700"}>
-                        {invoice.status.toUpperCase()}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">Criada em: {new Date(invoice.createdAt).toLocaleDateString("pt-BR")}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between md:justify-end gap-6 pt-3 md:pt-0 border-t md:border-t-0 border-border/40">
-                  <div className="text-left md:text-right">
-                    <p className="text-[11px] text-muted-foreground">Valor Total</p>
-                    <p className="text-base font-bold text-foreground">{formatCurrency(invoice.total)}</p>
-                  </div>
-                  <Button variant="outline" size="sm" onClick={() => navigate(`/invoices`)} className="gap-1.5">
-                    Detalhes <ArrowRight className="w-3.5 h-3.5" />
-                  </Button>
-                </div>
+        <Card className="border-0 shadow-sm">
+          <CardHeader>
+            <CardTitle>Lista de Faturas</CardTitle>
+            <CardDescription>Total: {filteredInvoices.length} faturas</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
               </div>
-            ))}
-          </div>
-        )}
+            ) : filteredInvoices.length === 0 ? (
+              <div className="text-center py-12">
+                <FileText className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                <p className="text-slate-500">Nenhuma fatura encontrada</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Número</th>
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Cliente</th>
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Valor</th>
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Status</th>
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Vencimento</th>
+                      <th className="text-center py-3 px-4 font-medium text-muted-foreground">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredInvoices.map((invoice: any) => (
+                      <tr key={invoice.id} className="border-b border-slate-100 hover:bg-muted transition-colors">
+                        <td className="py-3 px-4 font-medium text-foreground">{invoice.number}</td>
+                        <td className="py-3 px-4 text-muted-foreground">Cliente #{invoice.clientId}</td>
+                        <td className="py-3 px-4 font-medium text-foreground">R$ {invoice.total.toLocaleString("pt-BR")}</td>
+                        <td className="py-3 px-4">
+                          <Badge className={statusColors[invoice.status] || "bg-slate-100 text-slate-700"}>
+                            {invoice.status}
+                          </Badge>
+                        </td>
+                        <td className="py-3 px-4 text-muted-foreground">
+                          {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString("pt-BR") : "-"}
+                        </td>
+                        <td className="py-3 px-4 text-center flex gap-2 justify-center">
+                          <Button variant="ghost" size="sm" disabled>
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" disabled>
+                            <Download className="w-4 h-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
-
-      {/* Floating Action Button (FAB) Zoho Books mobile style */}
-      <button
-        onClick={() => navigate("/invoices/new")}
-        className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-[#1B5E20] text-white shadow-2xl flex items-center justify-center hover:bg-[#1B5E20]/90 transition-transform hover:scale-105 z-50 md:hidden"
-        title="Nova Fatura"
-      >
-        <Plus className="w-6 h-6" />
-      </button>
     </AppLayout>
   );
 }

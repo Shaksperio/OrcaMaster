@@ -182,48 +182,9 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [x] Validar integração mantendo todas as funcionalidades atuais intactas
 - [x] Executar testes automatizados, verificação de tipos e build de produção
 
-## Fase 13 - Contas a Receber e Relatórios Financeiros Avançados
-- [x] Adicionar tabela e procedures de contas a receber (receivables) para gerenciar faturas em aberto e parciais
-- [x] Criar página dedicada a relatórios financeiros e demonstrativos de resultados (DRE simplificado)
-- [x] Validar rotas e testes automatizados de regressão
-- [x] Executar build de produção e salvar checkpoint
-
-## Fase 14 - Modernização Visual (Estilo Zoho Books) e Otimização de Performance
-- [x] Reorganizar o menu de navegação e layout no AppLayout para o padrão Zoho Books (Vendas, Compras, Contabilidade, Relatórios)
-- [x] Atualizar o Dashboard principal para cards e gráficos inspirados no painel financeiro moderno
-- [x] Otimizar consultas ao banco e cache tRPC para máxima velocidade de carregamento
-- [x] Validar suíte de testes automatizados e build de produção
-
-## Fase 15 - Navegação Estilo Zoho Books (Menus Expansíveis e Gaveta)
-- [x] Atualizar AppLayout.tsx com gaveta lateral e grupos expansíveis (Vendas, Compras, Cadastros, Relatórios, Configurações)
-- [x] Integrar perfil de usuário e seletor de empresa no topo do menu lateral
-- [x] Validar testes automatizados e build de produção
-
-## Fase 16 - Aprimoramentos Visuais baseados no Zoho Books (Listas em Cartões, FAB Flutuante e Abas de Detalhes)
-- [x] Atualizar listagem de Clientes e Faturas com cards limpos, avatares e indicadores de status
-- [x] Adicionar botão flutuante de ação rápida (FAB) nas páginas principais para criação rápida
-- [x] Atualizar página de Configurações com seções categorizadas em estilo de lista limpa
+## Fase 21 - Catálogo Híbrido Avançado e Sincronização Automática (Inspiração Baseada no Guia)
+- [ ] Remover fallbacks fictícios de preços e dados aleatórios em server/external-search.ts
+- [x] Expandir schema em drizzle/schema.ts com histórico de preços (productPriceHistory) e metadados de sincronização (sourceType, syncEnabled, externalUrl, externalStatus, etc.)
+- [ ] Implementar rotina robusta de sincronização em segundo plano (Heartbeat / sync routine)
+- [ ] Atualizar componentes de importação com pré-revisão e distinção de preço externo vs preço personalizado
 - [x] Executar testes automatizados, verificação de tipos e build de produção
-
-## Fase 17 - Correção de Layout e Responsividade em Edição de Orçamento e CRUDs
-- [x] Corrigir quebra de abas e sobreposição de rótulos em EditQuotation.tsx para dispositivos móveis
-- [x] Tornar o cabeçalho e os botões de ação (Voltar, Salvar) totalmente flexíveis e responsivos em EditQuotation.tsx
-- [x] Revisar margens, espaçamentos e grids em CreateQuotation.tsx e EditQuotation.tsx
-- [x] Validar testes automatizados e build de produção
-
-## Fase 18 - Sincronização com GitHub e Espelho/Fallback com Firebase
-- [x] Verificar status do repositório git e branches locais
-- [x] Implementar política de fallback de leitura para o Firebase em caso de indisponibilidade do banco principal
-- [x] Validar testes automatizados e build de produção com a estratégia híbrida de dados
-
-## Fase 19 - Template Visual Estilo Ghost CMS (Minimalismo Editorial e Alta Performance)
-- [x] Atualizar AppLayout.tsx com shell visual estilo Ghost CMS (fundo escuro/claro minimalista, tipografia editorial, navegação lateral limpa e ícones finos)
-- [x] Atualizar o Dashboard para métricas editoriais e cartões de conteúdo organizados
-- [x] Validar testes automatizados e build de produção
-- [x] Sincronizar atualizações com o repositório GitHub
-
-## Fase 20 - Catálogo Híbrido Avançado (Leroy Merlin e Acal Home Center)
-- [x] Criar adaptadores normalizados para Leroy Merlin e Acal Home Center em server/external-search.ts
-- [x] Atualizar o esquema e banco para suportar campos de origem, SKU de fornecedor, última sincronização e histórico de preços
-- [x] Atualizar o frontend Products.tsx para busca agrupada por fornecedor, botão de importação revisável e tags de origem
-- [x] Validar testes automatizados e build de produção

@@ -12,7 +12,6 @@ import { Loader2 } from "lucide-react";
 import { useCompany } from "@/contexts/CompanyContext";
 import { toast } from "sonner";
 import { LeroyProductSearch, type LeroyProductSelection } from "@/components/LeroyProductSearch";
-import { AcalProductSearch, type AcalProductSelection } from "@/components/AcalProductSearch";
 import { SinapiSearch, type SinapiServiceSelection } from "@/components/SinapiSearch";
 
 export default function Products() {
@@ -82,7 +81,7 @@ export default function Products() {
     }
   };
 
-  const handleExternalProductSelect = async (item: LeroyProductSelection | AcalProductSelection | SinapiServiceSelection) => {
+  const handleExternalProductSelect = async (item: LeroyProductSelection | SinapiServiceSelection) => {
     if (!activeCompany) throw new Error("Selecione uma empresa primeiro.");
     await createProductMutation.mutateAsync({
       companyId: activeCompany.id,
@@ -91,10 +90,8 @@ export default function Products() {
       sku: item.sku,
       category: item.category,
       price: item.price,
-      unit: item.unit || "un",
+      unit: item.unit,
       stock: 0,
-      externalSource: "externalSource" in item ? item.externalSource : undefined,
-      externalSku: "externalSku" in item ? item.externalSku : undefined,
     });
   };
 
@@ -217,11 +214,10 @@ export default function Products() {
         </div>
 
         {activeCompany && (
-          <div className="space-y-6 mb-8">
+          <>
             <LeroyProductSearch companyId={activeCompany.id} onSelect={handleExternalProductSelect} />
-            <AcalProductSearch companyId={activeCompany.id} onSelect={handleExternalProductSelect} />
             <SinapiSearch companyId={activeCompany.id} onSelect={handleExternalProductSelect} />
-          </div>
+          </>
         )}
 
         {/* Search */}
@@ -260,36 +256,28 @@ export default function Products() {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
-                      <thead>
-                        <tr className="border-b border-border">
-                          <th className="text-left py-3 px-4 font-medium text-muted-foreground">Nome</th>
-                          <th className="text-left py-3 px-4 font-medium text-muted-foreground">SKU</th>
-                          <th className="text-left py-3 px-4 font-medium text-muted-foreground">Origem / Fornecedor</th>
-                          <th className="text-left py-3 px-4 font-medium text-muted-foreground">Preço</th>
-                          <th className="text-left py-3 px-4 font-medium text-muted-foreground">Estoque</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredProducts.map((product: any) => (
-                          <tr key={product.id} className="border-b border-border hover:bg-muted transition-colors">
-                            <td className="py-3 px-4 font-medium text-foreground">{product.name}</td>
-                            <td className="py-3 px-4 text-muted-foreground">{product.sku || "-"}</td>
-                            <td className="py-3 px-4 text-muted-foreground">
-                              {product.externalSource ? (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
-                                  {product.externalSource}
-                                </span>
-                              ) : (
-                                <span className="text-xs text-muted-foreground">Local / Manual</span>
-                              )}
-                            </td>
-                            <td className="py-3 px-4 font-medium text-foreground">
-                              R$ {product.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                            </td>
-                            <td className="py-3 px-4 text-muted-foreground">{product.stock || 0} {product.unit || "un"}</td>
-                          </tr>
-                        ))}
-                      </tbody>
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Nome</th>
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">SKU</th>
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Categoria</th>
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Preço</th>
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Estoque</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredProducts.map((product: any) => (
+                      <tr key={product.id} className="border-b border-border hover:bg-muted transition-colors">
+                        <td className="py-3 px-4 font-medium text-foreground">{product.name}</td>
+                        <td className="py-3 px-4 text-muted-foreground">{product.sku || "-"}</td>
+                        <td className="py-3 px-4 text-muted-foreground">{product.category || "-"}</td>
+                        <td className="py-3 px-4 font-medium text-foreground">
+                          R$ {product.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                        </td>
+                        <td className="py-3 px-4 text-muted-foreground">{product.stock || 0} {product.unit || "un"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
                 </table>
               </div>
             )}
