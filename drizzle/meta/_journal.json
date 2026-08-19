@@ -22,6 +22,13 @@
       "when": 1786509616459,
       "tag": "0002_bizarre_the_watchers",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1787141602208,
+      "tag": "0003_aspiring_grim_reaper",
+      "breakpoints": true
     }
   ]
 }

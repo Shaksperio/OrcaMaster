@@ -2,7 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, LogOut, Settings, Bell, FileText, Users, Package, Briefcase, BarChart3, Home } from "lucide-react";
+import { Menu, LogOut, Settings, Bell, FileText, Users, Package, Briefcase, BarChart3, Home, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
@@ -14,6 +14,7 @@ const navigationItems = [
   { label: "Dashboard", href: "/dashboard", icon: Home },
   { label: "Orçamentos", href: "/quotations", icon: FileText },
   { label: "Faturas", href: "/invoices", icon: BarChart3 },
+  { label: "Contas a Receber", href: "/receivables", icon: DollarSign },
   { label: "Despesas & Contas", href: "/expenses", icon: Briefcase },
   { label: "Clientes", href: "/customers", icon: Users },
   { label: "Produtos", href: "/products", icon: Package },

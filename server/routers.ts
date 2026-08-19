@@ -672,6 +672,56 @@ export const appRouter = router({
       }),
   }),
 
+  // Receivables procedures
+  receivables: router({
+    list: protectedProcedure
+      .input(z.object({ companyId: z.number() }))
+      .query(async ({ input, ctx }) => {
+        await checkCompanyAccess(ctx.user.id, input.companyId);
+        return db.getCompanyReceivables(input.companyId);
+      }),
+
+    create: protectedProcedure
+      .input(z.object({
+        companyId: z.number(),
+        clientId: z.number().optional(),
+        description: z.string().min(1),
+        amount: z.string().or(z.number()),
+        dueDate: z.string(),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        await checkCompanyAccess(ctx.user.id, input.companyId);
+        const item = await db.createReceivable({
+          companyId: input.companyId,
+          clientId: input.clientId || null,
+          description: input.description,
+          amount: String(input.amount) as any,
+          dueDate: new Date(input.dueDate),
+          notes: input.notes,
+          status: "pendente",
+        });
+        return item;
+      }),
+
+    updateStatus: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        status: z.enum(["pendente", "recebido", "atrasado", "cancelado"]),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        await db.updateReceivableStatus(input.id, input.status);
+        return { success: true };
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        await db.deleteReceivable(input.id);
+        return { success: true };
+      }),
+  }),
+
   // Expenses procedures
   expenses: router({
     list: protectedProcedure
@@ -732,18 +782,23 @@ export const appRouter = router({
         await checkCompanyAccess(ctx.user.id, input.companyId);
         const invs = await db.getCompanyInvoices(input.companyId);
         const exps = await db.getCompanyExpenses(input.companyId);
+        const recs = await db.getCompanyReceivables(input.companyId);
 
         const totalInvoiced = invs.reduce((acc, i) => acc + Number(i.total || 0), 0);
         const totalPaidInvoices = invs.filter(i => i.status === 'pago').reduce((acc, i) => acc + Number(i.total || 0), 0);
+        const totalReceivables = recs.reduce((acc, r) => acc + Number(r.amount || 0), 0);
+        const totalReceived = recs.filter(r => r.status === 'recebido').reduce((acc, r) => acc + Number(r.amount || 0), 0);
         const totalExpenses = exps.reduce((acc, e) => acc + Number(e.amount || 0), 0);
         const totalPaidExpenses = exps.filter(e => e.status === 'pago').reduce((acc, e) => acc + Number(e.amount || 0), 0);
 
         return {
           totalInvoiced,
           totalPaidInvoices,
+          totalReceivables,
+          totalReceived,
           totalExpenses,
           totalPaidExpenses,
-          netProfit: totalPaidInvoices - totalPaidExpenses,
+          netProfit: (totalPaidInvoices + totalReceived) - totalPaidExpenses,
         };
       }),
   }),

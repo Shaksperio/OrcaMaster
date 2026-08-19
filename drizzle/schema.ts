@@ -456,3 +456,26 @@ export const expenses = mysqlTable("expenses", {
 
 export type Expense = typeof expenses.$inferSelect;
 export type InsertExpense = typeof expenses.$inferInsert;
+
+/**
+ * Receivables table for tracking accounts receivable and incoming payments
+ */
+export const receivables = mysqlTable("receivables", {
+  id: int("id").autoincrement().primaryKey(),
+  companyId: int("companyId").notNull(),
+  clientId: int("clientId"),
+  description: varchar("description", { length: 255 }).notNull(),
+  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
+  dueDate: timestamp("dueDate").notNull(),
+  receivedDate: timestamp("receivedDate"),
+  status: mysqlEnum("status", ["pendente", "recebido", "atrasado", "cancelado"]).default("pendente").notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  companyIdIdx: index("receivables_companyId_idx").on(table.companyId),
+  statusIdx: index("receivables_status_idx").on(table.status),
+}));
+
+export type Receivable = typeof receivables.$inferSelect;
+export type InsertReceivable = typeof receivables.$inferInsert;

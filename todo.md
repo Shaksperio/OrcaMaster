@@ -181,3 +181,9 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [x] Criar página de Gestão Financeira (Despesas e Fluxo de Caixa) na interface
 - [x] Validar integração mantendo todas as funcionalidades atuais intactas
 - [x] Executar testes automatizados, verificação de tipos e build de produção
+
+## Fase 13 - Contas a Receber e Relatórios Financeiros Avançados
+- [x] Adicionar tabela e procedures de contas a receber (receivables) para gerenciar faturas em aberto e parciais
+- [x] Criar página dedicada a relatórios financeiros e demonstrativos de resultados (DRE simplificado)
+- [x] Validar rotas e testes automatizados de regressão
+- [x] Executar build de produção e salvar checkpoint
