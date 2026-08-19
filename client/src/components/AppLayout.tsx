@@ -2,7 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, LogOut, Settings, Bell, FileText, Users, Package, Briefcase, BarChart3, Home, DollarSign, ChevronDown, ChevronRight, Folder, FileSpreadsheet } from "lucide-react";
+import { Menu, LogOut, Settings, FileText, Users, Package, Briefcase, BarChart3, Home, DollarSign, ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -16,11 +16,10 @@ export function AppLayout({ children }: AppLayoutProps) {
   const [location, navigate] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Accordion states for collapsible groups
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     vendas: true,
     compras: true,
-    cadastros: false,
+    cadastros: true,
   });
 
   const toggleGroup = (key: string) => {
@@ -33,68 +32,65 @@ export function AppLayout({ children }: AppLayoutProps) {
   };
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground">
-      {/* User / Org Header (Zoho Books style) */}
-      <div className="p-4 border-b border-sidebar-border bg-black/10">
+    <div className="flex flex-col h-full bg-[#15171A] text-slate-300 font-sans tracking-tight">
+      {/* Ghost CMS Style Brand Header */}
+      <div className="p-5 border-b border-slate-800/80 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Avatar className="w-10 h-10 border border-orange-400/30 bg-orange-500 text-white">
-            <AvatarFallback className="font-bold">{user?.name ? user.name.substring(0, 2).toUpperCase() : "OM"}</AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <h2 className="font-semibold text-sm text-white truncate">{user?.name || "OrçaMaster Admin"}</h2>
-            <p className="text-xs text-orange-200/80 truncate">{user?.email || "admin@orcamaster.app"}</p>
+          <div className="w-8 h-8 rounded-lg bg-white text-black font-black flex items-center justify-center text-sm shadow-sm">
+            OM
+          </div>
+          <div>
+            <h2 className="font-bold text-sm text-white tracking-wide">OrçaMaster</h2>
+            <p className="text-[11px] text-slate-400">Editorial Edition</p>
           </div>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-3 space-y-2 overflow-y-auto">
-        {/* Home */}
+      <nav className="flex-1 p-4 space-y-4 overflow-y-auto">
+        {/* Dashboard */}
         <button
           onClick={() => {
             navigate("/dashboard");
             setIsMobileMenuOpen(false);
           }}
           className={cn(
-            "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200",
+            "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-md text-sm font-medium transition-all",
             location === "/dashboard"
-              ? "bg-orange-500 text-white font-medium shadow-md"
-              : "text-orange-50 hover:bg-green-700/50"
+              ? "bg-white text-black shadow"
+              : "text-slate-300 hover:bg-slate-800/60 hover:text-white"
           )}
         >
           <Home className="w-4 h-4" />
-          <span>Página Inicial</span>
+          <span>Dashboard</span>
         </button>
 
-        {/* Vendas Group */}
+        {/* Vendas */}
         <div className="space-y-1">
           <button
             onClick={() => toggleGroup("vendas")}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm text-orange-100 hover:bg-green-700/30 transition-colors font-medium"
+            className="w-full flex items-center justify-between px-3.5 py-2 rounded-md text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-white transition-colors"
           >
-            <div className="flex items-center gap-3">
-              <BarChart3 className="w-4 h-4 text-orange-400" />
-              <span>Vendas</span>
-            </div>
-            {openGroups.vendas ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+            <span>Vendas & Faturamento</span>
+            {openGroups.vendas ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
           </button>
           {openGroups.vendas && (
-            <div className="pl-6 space-y-1 border-l border-orange-500/20 ml-4 my-1">
+            <div className="pl-3 space-y-1 mt-1 border-l border-slate-800 ml-3">
               <button
                 onClick={() => { navigate("/quotations"); setIsMobileMenuOpen(false); }}
-                className={cn("w-full text-left px-3 py-2 rounded-md text-xs transition-colors", location === "/quotations" ? "bg-orange-500 text-white font-medium" : "text-orange-100 hover:bg-green-700/40")}
+                className={cn("w-full text-left px-3 py-2 rounded-md text-xs font-medium transition-all", location === "/quotations" ? "bg-white text-black" : "text-slate-400 hover:text-white hover:bg-slate-800/40")}
               >
-                Orçamentos / Estimativas
+                Orçamentos
               </button>
               <button
                 onClick={() => { navigate("/invoices"); setIsMobileMenuOpen(false); }}
-                className={cn("w-full text-left px-3 py-2 rounded-md text-xs transition-colors", location === "/invoices" ? "bg-orange-500 text-white font-medium" : "text-orange-100 hover:bg-green-700/40")}
+                className={cn("w-full text-left px-3 py-2 rounded-md text-xs font-medium transition-all", location === "/invoices" ? "bg-white text-black" : "text-slate-400 hover:text-white hover:bg-slate-800/40")}
               >
                 Faturas
               </button>
               <button
                 onClick={() => { navigate("/receivables"); setIsMobileMenuOpen(false); }}
-                className={cn("w-full text-left px-3 py-2 rounded-md text-xs transition-colors", location === "/receivables" ? "bg-orange-500 text-white font-medium" : "text-orange-100 hover:bg-green-700/40")}
+                className={cn("w-full text-left px-3 py-2 rounded-md text-xs font-medium transition-all", location === "/receivables" ? "bg-white text-black" : "text-slate-400 hover:text-white hover:bg-slate-800/40")}
               >
                 Contas a Receber
               </button>
@@ -102,23 +98,20 @@ export function AppLayout({ children }: AppLayoutProps) {
           )}
         </div>
 
-        {/* Compras Group */}
+        {/* Compras */}
         <div className="space-y-1">
           <button
             onClick={() => toggleGroup("compras")}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm text-orange-100 hover:bg-green-700/30 transition-colors font-medium"
+            className="w-full flex items-center justify-between px-3.5 py-2 rounded-md text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-white transition-colors"
           >
-            <div className="flex items-center gap-3">
-              <Briefcase className="w-4 h-4 text-orange-400" />
-              <span>Compras & Despesas</span>
-            </div>
-            {openGroups.compras ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+            <span>Despesas & Custos</span>
+            {openGroups.compras ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
           </button>
           {openGroups.compras && (
-            <div className="pl-6 space-y-1 border-l border-orange-500/20 ml-4 my-1">
+            <div className="pl-3 space-y-1 mt-1 border-l border-slate-800 ml-3">
               <button
                 onClick={() => { navigate("/expenses"); setIsMobileMenuOpen(false); }}
-                className={cn("w-full text-left px-3 py-2 rounded-md text-xs transition-colors", location === "/expenses" ? "bg-orange-500 text-white font-medium" : "text-orange-100 hover:bg-green-700/40")}
+                className={cn("w-full text-left px-3 py-2 rounded-md text-xs font-medium transition-all", location === "/expenses" ? "bg-white text-black" : "text-slate-400 hover:text-white hover:bg-slate-800/40")}
               >
                 Despesas & Contas
               </button>
@@ -126,35 +119,32 @@ export function AppLayout({ children }: AppLayoutProps) {
           )}
         </div>
 
-        {/* Cadastros Group */}
+        {/* Cadastros */}
         <div className="space-y-1">
           <button
             onClick={() => toggleGroup("cadastros")}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm text-orange-100 hover:bg-green-700/30 transition-colors font-medium"
+            className="w-full flex items-center justify-between px-3.5 py-2 rounded-md text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-white transition-colors"
           >
-            <div className="flex items-center gap-3">
-              <Users className="w-4 h-4 text-orange-400" />
-              <span>Cadastros</span>
-            </div>
-            {openGroups.cadastros ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+            <span>Cadastros Base</span>
+            {openGroups.cadastros ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
           </button>
           {openGroups.cadastros && (
-            <div className="pl-6 space-y-1 border-l border-orange-500/20 ml-4 my-1">
+            <div className="pl-3 space-y-1 mt-1 border-l border-slate-800 ml-3">
               <button
                 onClick={() => { navigate("/customers"); setIsMobileMenuOpen(false); }}
-                className={cn("w-full text-left px-3 py-2 rounded-md text-xs transition-colors", location === "/customers" ? "bg-orange-500 text-white font-medium" : "text-orange-100 hover:bg-green-700/40")}
+                className={cn("w-full text-left px-3 py-2 rounded-md text-xs font-medium transition-all", location === "/customers" ? "bg-white text-black" : "text-slate-400 hover:text-white hover:bg-slate-800/40")}
               >
                 Clientes
               </button>
               <button
                 onClick={() => { navigate("/products"); setIsMobileMenuOpen(false); }}
-                className={cn("w-full text-left px-3 py-2 rounded-md text-xs transition-colors", location === "/products" ? "bg-orange-500 text-white font-medium" : "text-orange-100 hover:bg-green-700/40")}
+                className={cn("w-full text-left px-3 py-2 rounded-md text-xs font-medium transition-all", location === "/products" ? "bg-white text-black" : "text-slate-400 hover:text-white hover:bg-slate-800/40")}
               >
                 Produtos & Serviços
               </button>
               <button
                 onClick={() => { navigate("/professionals"); setIsMobileMenuOpen(false); }}
-                className={cn("w-full text-left px-3 py-2 rounded-md text-xs transition-colors", location === "/professionals" ? "bg-orange-500 text-white font-medium" : "text-orange-100 hover:bg-green-700/40")}
+                className={cn("w-full text-left px-3 py-2 rounded-md text-xs font-medium transition-all", location === "/professionals" ? "bg-white text-black" : "text-slate-400 hover:text-white hover:bg-slate-800/40")}
               >
                 Profissionais
               </button>
@@ -163,16 +153,25 @@ export function AppLayout({ children }: AppLayoutProps) {
         </div>
       </nav>
 
-      {/* Footer / Settings */}
-      <div className="p-3 border-t border-sidebar-border space-y-1">
+      {/* User / Settings Footer */}
+      <div className="p-4 border-t border-slate-800/80 space-y-2 bg-black/20">
+        <div className="flex items-center gap-3 px-2 py-1.5">
+          <Avatar className="w-8 h-8 bg-slate-700 text-white text-xs font-bold">
+            <AvatarFallback>{user?.name ? user.name.substring(0, 2).toUpperCase() : "OM"}</AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-medium text-white truncate">{user?.name || "Administrador"}</p>
+            <p className="text-[10px] text-slate-400 truncate">{user?.email || "admin@orcamaster"}</p>
+          </div>
+        </div>
         <button 
           onClick={() => {
             navigate("/settings");
             setIsMobileMenuOpen(false);
           }}
           className={cn(
-            "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
-            location === "/settings" ? "bg-orange-500 text-white font-medium" : "text-orange-50 hover:bg-green-700/50"
+            "w-full flex items-center gap-3 px-3 py-2 rounded-md text-xs font-medium transition-colors",
+            location === "/settings" ? "bg-white text-black" : "text-slate-300 hover:bg-slate-800 hover:text-white"
           )}
         >
           <Settings className="w-4 h-4" />
@@ -180,46 +179,46 @@ export function AppLayout({ children }: AppLayoutProps) {
         </button>
         <button 
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-orange-50 hover:bg-red-600/30 transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors"
         >
           <LogOut className="w-4 h-4" />
-          <span>Sair</span>
+          <span>Sair da conta</span>
         </button>
       </div>
     </div>
   );
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-[#F8F9FA] text-[#15171A]">
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 border-r border-sidebar-border">
+      <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 border-r border-slate-200">
         <SidebarContent />
       </div>
 
       {/* Main Content Container */}
       <div className="flex flex-col flex-1 md:ml-64 min-w-0">
         {/* Mobile Header */}
-        <div className="md:hidden flex items-center justify-between h-16 px-4 bg-sidebar border-b border-sidebar-border text-white shadow-sm">
+        <div className="md:hidden flex items-center justify-between h-16 px-4 bg-[#15171A] border-b border-slate-800 text-white shadow-sm">
           <div className="flex items-center gap-3">
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-white hover:bg-green-700/50">
+                <Button variant="ghost" size="icon" className="text-white hover:bg-slate-800">
                   <Menu className="w-6 h-6" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="p-0 w-72 bg-sidebar border-r border-sidebar-border">
+              <SheetContent side="left" className="p-0 w-72 bg-[#15171A] border-r border-slate-800">
                 <SidebarContent />
               </SheetContent>
             </Sheet>
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded bg-orange-500 flex items-center justify-center font-bold text-xs">OM</div>
-              <span className="font-bold">OrçaMaster</span>
+              <div className="w-7 h-7 rounded bg-white text-black flex items-center justify-center font-bold text-xs">OM</div>
+              <span className="font-bold tracking-tight">OrçaMaster</span>
             </div>
           </div>
         </div>
 
         {/* Scrollable Page Content */}
-        <main className="flex-1 overflow-y-auto bg-background">
+        <main className="flex-1 overflow-y-auto bg-[#F8F9FA]">
           {children}
         </main>
       </div>
