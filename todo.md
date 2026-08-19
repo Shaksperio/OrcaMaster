@@ -187,3 +187,9 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [x] Criar página dedicada a relatórios financeiros e demonstrativos de resultados (DRE simplificado)
 - [x] Validar rotas e testes automatizados de regressão
 - [x] Executar build de produção e salvar checkpoint
+
+## Fase 14 - Modernização Visual (Estilo Zoho Books) e Otimização de Performance
+- [x] Reorganizar o menu de navegação e layout no AppLayout para o padrão Zoho Books (Vendas, Compras, Contabilidade, Relatórios)
+- [x] Atualizar o Dashboard principal para cards e gráficos inspirados no painel financeiro moderno
+- [x] Otimizar consultas ao banco e cache tRPC para máxima velocidade de carregamento
+- [x] Validar suíte de testes automatizados e build de produção

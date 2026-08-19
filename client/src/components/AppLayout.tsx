@@ -10,15 +10,35 @@ interface AppLayoutProps {
   children: React.ReactNode;
 }
 
-const navigationItems = [
-  { label: "Dashboard", href: "/dashboard", icon: Home },
-  { label: "Orçamentos", href: "/quotations", icon: FileText },
-  { label: "Faturas", href: "/invoices", icon: BarChart3 },
-  { label: "Contas a Receber", href: "/receivables", icon: DollarSign },
-  { label: "Despesas & Contas", href: "/expenses", icon: Briefcase },
-  { label: "Clientes", href: "/customers", icon: Users },
-  { label: "Produtos", href: "/products", icon: Package },
-  { label: "Profissionais", href: "/professionals", icon: Briefcase },
+const navigationGroups = [
+  {
+    title: "Geral",
+    items: [
+      { label: "Painel Principal", href: "/dashboard", icon: Home },
+    ],
+  },
+  {
+    title: "Vendas",
+    items: [
+      { label: "Orçamentos", href: "/quotations", icon: FileText },
+      { label: "Faturas", href: "/invoices", icon: BarChart3 },
+      { label: "Contas a Receber", href: "/receivables", icon: DollarSign },
+    ],
+  },
+  {
+    title: "Compras & Despesas",
+    items: [
+      { label: "Despesas & Contas", href: "/expenses", icon: Briefcase },
+    ],
+  },
+  {
+    title: "Cadastros",
+    items: [
+      { label: "Clientes", href: "/customers", icon: Users },
+      { label: "Produtos & Serviços", href: "/products", icon: Package },
+      { label: "Profissionais", href: "/professionals", icon: Briefcase },
+    ],
+  },
 ];
 
 export function AppLayout({ children }: AppLayoutProps) {
@@ -47,29 +67,34 @@ export function AppLayout({ children }: AppLayoutProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-2">
-        {navigationItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = location === item.href || (item.href !== "/dashboard" && location.startsWith(item.href + "/"));
-          return (
-            <button
-              key={item.href}
-              onClick={() => {
-                navigate(item.href);
-                setIsMobileMenuOpen(false);
-              }}
-              className={cn(
-                "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200",
-                isActive
-                  ? "bg-orange-500 text-white font-medium shadow-md hover:bg-orange-600"
-                  : "text-orange-50 hover:bg-green-700/50"
-              )}
-            >
-              <Icon className="w-5 h-5" />
-              <span>{item.label}</span>
-            </button>
-          );
-        })}
+      <nav className="flex-1 p-3 space-y-4 overflow-y-auto">
+        {navigationGroups.map((group, idx) => (
+          <div key={idx} className="space-y-1">
+            <h2 className="px-4 text-[11px] font-semibold uppercase tracking-wider text-orange-200/70">{group.title}</h2>
+            {group.items.map((item: any) => {
+              const Icon = item.icon;
+              const isActive = location === item.href || (item.href !== "/dashboard" && location.startsWith(item.href + "/"));
+              return (
+                <button
+                  key={item.href}
+                  onClick={() => {
+                    navigate(item.href);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-all duration-200",
+                    isActive
+                      ? "bg-orange-500 text-white font-medium shadow-md hover:bg-orange-600"
+                      : "text-orange-50 hover:bg-green-700/50"
+                  )}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        ))}
       </nav>
 
       {/* User Section */}
