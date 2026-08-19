@@ -58,4 +58,60 @@ describe("Busca externa de produtos e serviços sem dados fictícios", () => {
     expect(response.results[0].price).toBeUndefined();
     expect(response.results[0].sku).toBeUndefined();
   });
+
+  it("faz parsing defensivo de JSON-LD público da Leroy sem Firecrawl", async () => {
+    vi.stubGlobal("fetch", vi.fn()
+      .mockResolvedValueOnce({ ok: false, text: async () => "" })
+      .mockResolvedValueOnce({
+        ok: true,
+        text: async () => `<script type="application/ld+json">${JSON.stringify({
+          "@type": "Product",
+          name: "Tinta Real 18L",
+          sku: "REAL-18",
+          url: "https://www.leroymerlin.com.br/produto-real",
+          brand: { name: "Marca Real" },
+          offers: { price: "199,90", priceCurrency: "BRL", availability: "https://schema.org/InStock" },
+        })}</script>`,
+      }));
+
+    const response = await searchLeroyMerlin("tinta");
+    expect(response.source).toContain("Busca pública direta");
+    expect(response.results[0]).toMatchObject({
+      name: "Tinta Real 18L",
+      brand: "Marca Real",
+      price: 199.9,
+      sku: "REAL-18",
+      productUrl: "https://www.leroymerlin.com.br/produto-real",
+      availability: "https://schema.org/InStock",
+    });
+  });
+
+  it("mantém campos ausentes na página pública Acal sem placeholders", async () => {
+    vi.stubGlobal("fetch", vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({}) })
+      .mockResolvedValueOnce({
+        ok: true,
+        text: async () => `<script type="application/ld+json">${JSON.stringify({ "@type": "Product", name: "Produto Acal Real" })}</script>`,
+      }));
+
+    const response = await searchAcalHomeCenter("cimento");
+    expect(response.source).toContain("Busca pública direta");
+    expect(response.results[0].name).toBe("Produto Acal Real");
+    expect(response.results[0].price).toBeUndefined();
+    expect(response.results[0].sku).toBeUndefined();
+    expect(response.results[0].availability).toBeUndefined();
+    expect(response.results[0].productUrl).toBeUndefined();
+  });
+
+  it("retorna erro transparente quando a Leroy bloqueia todas as consultas públicas", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, text: async () => "captcha" }));
+    await expect(searchLeroyMerlin("tinta")).rejects.toThrow("Não foi possível consultar a Leroy Merlin");
+  });
+
+  it("retorna erro transparente quando o HTML público da Acal não contém produto válido", async () => {
+    vi.stubGlobal("fetch", vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({}) })
+      .mockResolvedValue({ ok: true, text: async () => "<html><body>captcha ou conteúdo sem JSON-LD</body></html>" }));
+    await expect(searchAcalHomeCenter("cimento")).rejects.toThrow("Não foi possível consultar a Acal Home Center");
+  });
 });

@@ -72,6 +72,7 @@ function estimateCoverage(name: string) {
 }
 
 function findArray(data: unknown): unknown[] {
+  if (Array.isArray(data)) return data;
   if (!data || typeof data !== "object") return [];
   const object = data as Record<string, unknown>;
   const directCandidates = [
@@ -80,12 +81,17 @@ function findArray(data: unknown): unknown[] {
     object.items,
     object.hits,
     object.data,
+    object["@graph"],
+    object.itemListElement,
     (object.data as Record<string, unknown> | undefined)?.products,
     (object.data as Record<string, unknown> | undefined)?.results,
   ];
   for (const candidate of directCandidates) {
     if (Array.isArray(candidate)) return candidate;
   }
+  const type = getString(object, ["@type"]);
+  if (type && /product|itemlist/i.test(type)) return [data];
+  if (getString(object, ["name", "title", "productName"])) return [data];
   return [];
 }
 
@@ -106,30 +112,55 @@ function getString(object: Record<string, unknown>, keys: string[]) {
   return undefined;
 }
 
+function unwrapProductEntry(entry: unknown): unknown {
+  if (!entry || typeof entry !== "object") return entry;
+  const object = entry as Record<string, unknown>;
+  return object.item && typeof object.item === "object" ? object.item : entry;
+}
+
+function parseExternalProduct(entry: unknown, supplier: string, categoryLabel: string): ExternalProductResult | undefined {
+  const unwrapped = unwrapProductEntry(entry);
+  if (!unwrapped || typeof unwrapped !== "object") return undefined;
+  const object = unwrapped as Record<string, unknown>;
+  const offers = object.offers && typeof object.offers === "object" ? object.offers as Record<string, unknown> : undefined;
+  const name = getString(object, ["name", "title", "productName", "description", "headline"]);
+  if (!name) return undefined;
+
+  const price = parsePrice(object.price ?? object.salePrice ?? object.value ?? object.bestPrice ?? offers?.price);
+  const brand = getString(object, ["brand", "brand.name", "manufacturer", "manufacturer.name", "marca"]);
+  const code = getString(object, ["code", "sku", "mpn", "gtin13", "ean"]);
+  const url = getString(object, ["url", "link", "productUrl"]);
+  const currency = getString(object, ["currency", "priceCurrency", "offers.priceCurrency"]);
+  const unit = getString(object, ["unit", "unitText", "offers.unit"]);
+  const availability = getString(object, ["availability", "offers.availability", "stockStatus"]);
+  const coverage = estimateCoverage(name);
+
+  return {
+    name,
+    ...(brand ? { brand } : {}),
+    ...(price !== undefined ? { price } : {}),
+    ...(currency ? { currency } : {}),
+    ...(code ? { code, sku: code, externalProductId: code } : {}),
+    ...(unit ? { unit } : {}),
+    ...(availability ? { availability } : {}),
+    category: `${categoryLabel} · ${detectPaintType(name)}`,
+    ...(coverage ? { coverage } : {}),
+    ...(url ? { productUrl: url } : {}),
+    supplier,
+    lastUpdated: new Date().toISOString(),
+  } as ExternalProductResult;
+}
+
+function parseExternalProducts(payload: unknown, supplier: string, categoryLabel: string): ExternalProductResult[] {
+  const entries = Array.isArray(payload) ? payload : findArray(payload);
+  return entries
+    .map((entry) => parseExternalProduct(entry, supplier, categoryLabel))
+    .filter((item): item is ExternalProductResult => item !== undefined)
+    .slice(0, 10);
+}
+
 function parseLeroyProducts(payload: unknown): ExternalProductResult[] {
-  const parsed = findArray(payload).map((entry) => {
-    if (!entry || typeof entry !== "object") return undefined;
-    const object = entry as Record<string, unknown>;
-    const name = getString(object, ["name", "title", "productName", "description"]);
-    const price = parsePrice(object.price ?? object.salePrice ?? object.value ?? object.bestPrice);
-    if (!name) return undefined;
-    const brand = getString(object, ["brand", "manufacturer", "marca"]);
-    const code = getString(object, ["code", "sku", "id", "productId"]);
-    const url = getString(object, ["url", "link", "productUrl"]);
-    const coverage = estimateCoverage(name);
-    return {
-      name,
-      ...(brand ? { brand } : {}),
-      ...(price !== undefined ? { price } : {}),
-      ...(code ? { code, sku: code, externalProductId: code } : {}),
-      category: `Leroy Merlin · ${detectPaintType(name)}`,
-      ...(coverage ? { coverage } : {}),
-      ...(url ? { productUrl: url } : {}),
-      supplier: "Leroy Merlin",
-      lastUpdated: new Date().toISOString(),
-    } as ExternalProductResult;
-  });
-  return parsed.filter((item): item is ExternalProductResult => item !== undefined).slice(0, 10);
+  return parseExternalProducts(payload, "Leroy Merlin", "Leroy Merlin");
 }
 
 async function fetchJson(url: string, timeoutMs = 5000) {
@@ -151,22 +182,59 @@ async function fetchJson(url: string, timeoutMs = 5000) {
   }
 }
 
-async function fetchWithFirecrawlSearch(query: string): Promise<Array<Record<string, unknown>>> {
-  const apiKey = process.env.FIRECRAWL_API_KEY;
-  if (!apiKey) return [];
+type PublicPage = { url: string; html: string };
+
+async function fetchPublicPage(url: string, timeoutMs = 7000): Promise<PublicPage | undefined> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch("https://api.firecrawl.dev/v1/search", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ query, limit: 5, scrapeOptions: { formats: ["markdown", "html"] } }),
+    const response = await fetch(url, {
+      signal: controller.signal,
+      redirect: "follow",
+      headers: {
+        Accept: "text/html,application/xhtml+xml,application/json;q=0.9,*/*;q=0.8",
+        "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
+        "User-Agent": "Mozilla/5.0 (compatible; OrcaMaster/1.0)",
+      },
     });
-    if (!response.ok) return [];
-    const payload = (await response.json()) as Record<string, unknown>;
-    const data = Array.isArray(payload.data) ? payload.data : [];
-    return data as Array<Record<string, unknown>>;
+    if (!response.ok) return undefined;
+    const html = await response.text();
+    return html.trim() ? { url, html } : undefined;
   } catch {
-    return [];
+    return undefined;
+  } finally {
+    clearTimeout(timeout);
   }
+}
+
+function extractJsonLdEntries(html: string): unknown[] {
+  const entries: unknown[] = [];
+  const blocks = Array.from(html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi));
+  for (const match of blocks) {
+    try {
+      const parsed = JSON.parse(match[1].trim());
+      if (Array.isArray(parsed)) entries.push(...parsed);
+      else entries.push(parsed);
+    } catch {
+      // Bloco JSON-LD inválido não é usado como dado.
+    }
+  }
+  return entries;
+}
+
+function parsePublicPageProducts(page: PublicPage, supplier: string, categoryLabel: string): ExternalProductResult[] {
+  const structuredEntries = extractJsonLdEntries(page.html);
+  return parseExternalProducts(structuredEntries, supplier, categoryLabel);
+}
+
+async function searchPublicPages(urls: string[], supplier: string, categoryLabel: string): Promise<ExternalProductResult[]> {
+  for (const url of urls) {
+    const page = await fetchPublicPage(url);
+    if (!page) continue;
+    const results = parsePublicPageProducts(page, supplier, categoryLabel);
+    if (results.length > 0) return results;
+  }
+  return [];
 }
 
 export async function searchLeroyMerlin(searchTerm: string) {
@@ -186,36 +254,16 @@ export async function searchLeroyMerlin(searchTerm: string) {
     return { results: parsedFromApi, source: "Leroy Merlin API", lastSyncedAt: new Date().toISOString() };
   }
 
-  const searchEntries = await fetchWithFirecrawlSearch(`site:leroymerlin.com.br ${term}`);
-  const results: ExternalProductResult[] = [];
-  for (const entry of searchEntries) {
-    const title = getString(entry, ["title", "metadata.title"]);
-    const url = getString(entry, ["url", "metadata.sourceURL"]);
-    const markdown = getString(entry, ["markdown", "content", "html"]) || "";
-
-    if (!title || !url) continue;
-
-    const priceMatch = markdown.match(/R\$\s?([\d.]+,\d{2})/i) ?? markdown.match(/\b(\d{1,3}(?:\.\d{3})*,\d{2})\b/);
-    const price = priceMatch ? parsePrice(priceMatch[1]) : undefined;
-
-    const skuMatch = markdown.match(/SKU:?\s*([A-Z0-9-_]+)/i) ?? markdown.match(/Código:?\s*([A-Z0-9-_]+)/i);
-    const sku = skuMatch ? skuMatch[1] : undefined;
-    results.push({
-      name: title.replace(/[-|].*Leroy Merlin.*/i, "").trim(),
-      ...(price !== undefined ? { price } : {}),
-      ...(sku ? { sku, externalProductId: sku } : {}),
-      category: "Leroy Merlin · Materiais",
-      productUrl: url,
-      supplier: "Leroy Merlin",
-      lastUpdated: new Date().toISOString(),
-    });
-  }
+  const results = await searchPublicPages([
+    `https://www.leroymerlin.com.br/busca?q=${encodeURIComponent(term)}`,
+    `https://www.leroymerlin.com.br/busca?query=${encodeURIComponent(term)}`,
+  ], "Leroy Merlin", "Leroy Merlin");
 
   if (results.length === 0) {
     throw new Error("Não foi possível consultar a Leroy Merlin neste momento ou nenhum produto real foi encontrado.");
   }
 
-  return { results, source: "Leroy Merlin (Páginas Públicas)", lastSyncedAt: new Date().toISOString() };
+  return { results, source: "Leroy Merlin (Busca pública direta)", lastSyncedAt: new Date().toISOString() };
 }
 
 export async function searchAcalHomeCenter(searchTerm: string) {
@@ -230,41 +278,21 @@ export async function searchAcalHomeCenter(searchTerm: string) {
     // Tenta Firecrawl
   }
 
-  const parsedFromApi = payload ? parseLeroyProducts(payload) : [];
+  const parsedFromApi = payload ? parseExternalProducts(payload, "Acal Home Center", "Acal") : [];
   if (parsedFromApi.length > 0) {
-    return { results: parsedFromApi.map(item => ({ ...item, supplier: "Acal Home Center", category: "Acal · Materiais" })), source: "Acal API", lastSyncedAt: new Date().toISOString() };
+    return { results: parsedFromApi, source: "Acal API pública", lastSyncedAt: new Date().toISOString() };
   }
 
-  const searchEntries = await fetchWithFirecrawlSearch(`site:acalhomecenter.com.br ${term}`);
-  const results: ExternalProductResult[] = [];
-  for (const entry of searchEntries) {
-    const title = getString(entry, ["title", "metadata.title"]);
-    const url = getString(entry, ["url", "metadata.sourceURL"]);
-    const markdown = getString(entry, ["markdown", "content", "html"]) || "";
-
-    if (!title || !url) continue;
-
-    const priceMatch = markdown.match(/R\$\s?([\d.]+,\d{2})/i) ?? markdown.match(/\b(\d{1,3}(?:\.\d{3})*,\d{2})\b/);
-    const price = priceMatch ? parsePrice(priceMatch[1]) : undefined;
-
-    const skuMatch = markdown.match(/SKU:?\s*([A-Z0-9-_]+)/i) ?? markdown.match(/Código:?\s*([A-Z0-9-_]+)/i);
-    const sku = skuMatch ? skuMatch[1] : undefined;
-    results.push({
-      name: title.replace(/[-|].*Acal.*/i, "").trim(),
-      ...(price !== undefined ? { price } : {}),
-      ...(sku ? { sku, externalProductId: sku } : {}),
-      category: "Acal · Materiais",
-      productUrl: url,
-      supplier: "Acal Home Center",
-      lastUpdated: new Date().toISOString(),
-    });
-  }
+  const results = await searchPublicPages([
+    `https://www.acalhomecenter.com.br/busca?query=${encodeURIComponent(term)}`,
+    `https://www.acalhomecenter.com.br/busca?text=${encodeURIComponent(term)}`,
+  ], "Acal Home Center", "Acal");
 
   if (results.length === 0) {
     throw new Error("Não foi possível consultar a Acal Home Center neste momento ou nenhum produto real foi encontrado.");
   }
 
-  return { results, source: "Acal Home Center (Páginas Públicas)", lastSyncedAt: new Date().toISOString() };
+  return { results, source: "Acal Home Center (Busca pública direta)", lastSyncedAt: new Date().toISOString() };
 }
 
 const SINAPI_REFERENCE: SinapiSearchResult[] = [

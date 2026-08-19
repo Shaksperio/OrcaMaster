@@ -183,7 +183,7 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [x] Executar testes automatizados, verificação de tipos e build de produção
 
 ## Fase 21 - Catálogo Híbrido Avançado e Sincronização Automática (Inspiração Baseada no Guia)
-- [ ] Remover fallbacks fictícios de preços e dados aleatórios em server/external-search.ts
+- [x] Remover fallbacks fictícios de preços e dados aleatórios em server/external-search.ts
 - [x] Expandir schema em drizzle/schema.ts com histórico de preços (productPriceHistory) e metadados de sincronização (sourceType, syncEnabled, externalUrl, externalStatus, etc.)
 - [ ] Implementar rotina robusta de sincronização em segundo plano (Heartbeat / sync routine)
 - [ ] Atualizar componentes de importação com pré-revisão e distinção de preço externo vs preço personalizado
@@ -191,9 +191,17 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 
 ## Fase 22 - Eliminação de Dados Fictícios e Busca Externa Real (Firecrawl / Páginas Públicas)
 - [x] Ajustar server/external-search.ts para remover qualquer fallback ou dado inventado, retornando erro informativo quando indisponível
-- [x] Integrar busca pública da Leroy Merlin e Acal Home Center via Firecrawl e parsing de páginas públicas reais
+- [x] Integrar busca pública da Leroy Merlin e Acal Home Center por endpoints/páginas públicas diretas e parsing defensivo, sem Firecrawl
 - [x] Validar extração estrita de dados reais (nome, preço, disponibilidade, SKU, URL) sem preenchimento falso e sem valores padrão fictícios
 - [x] Adicionar testes para verificar que campos ausentes retornam null e nunca placeholders ou valores inventados
 - [x] Extrair SKU estritamente da fonte real (markdown ou JSON), sem inferir por regex de URL
 - [x] Adicionar testes cobrindo ausência de preço e SKU nas buscas Leroy e Acal
 - [x] Executar testes automatizados, verificação de tipos e build de produção
+
+## Adaptação de busca pública direta no tRPC
+- [x] Avaliar a integração Firecrawl e optar por não exigir API, conforme a restrição do projeto
+- [x] Normalizar respostas JSON/HTML público com parsing defensivo, sem placeholders ou inferências de SKU
+- [x] Cobrir respostas inválidas, campos ausentes e bloqueios de fonte com testes automatizados
+- [x] Executar testes da busca, verificação de tipos e build de produção
+- [x] Adaptar a busca externa para operar sem API Firecrawl, usando apenas requisições server-side a fontes públicas e sem fallback simulado
+- [x] Validar parsing defensivo do HTML/JSON direto, mantendo campos ausentes sem placeholders ou dados inferidos
