@@ -193,3 +193,8 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [x] Atualizar o Dashboard principal para cards e gráficos inspirados no painel financeiro moderno
 - [x] Otimizar consultas ao banco e cache tRPC para máxima velocidade de carregamento
 - [x] Validar suíte de testes automatizados e build de produção
+
+## Fase 15 - Navegação Estilo Zoho Books (Menus Expansíveis e Gaveta)
+- [x] Atualizar AppLayout.tsx com gaveta lateral e grupos expansíveis (Vendas, Compras, Cadastros, Relatórios, Configurações)
+- [x] Integrar perfil de usuário e seletor de empresa no topo do menu lateral
+- [x] Validar testes automatizados e build de produção
