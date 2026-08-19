@@ -11,7 +11,7 @@ describe("Fluxo visual e integração do catálogo externo", () => {
     expect(getLeroySearchState({ hasSearched: true, isFetching: false, hasError: false, resultCount: 1 })).toBe("results");
   });
 
-  it("mapeia o botão Adicionar Leroy para o cadastro local", () => {
+  it("mapeia o botão Revisar Leroy preservando metadados externos", () => {
     expect(mapLeroyResultToProduct({
       name: "Tinta acrílica 18L",
       brand: "Coral",
@@ -20,6 +20,9 @@ describe("Fluxo visual e integração do catálogo externo", () => {
       code: "COR-18",
       price: 199.9,
       unit: "un",
+      productUrl: "https://www.leroymerlin.com.br/produto-real",
+      availability: "https://schema.org/InStock",
+      currency: "BRL",
     })).toEqual({
       name: "Tinta acrílica 18L",
       description: "Coral · Acrílica · Rendimento estimado: até 200 m²",
@@ -27,6 +30,11 @@ describe("Fluxo visual e integração do catálogo externo", () => {
       category: "Leroy Merlin · Acrílica",
       price: 199.9,
       unit: "un",
+      externalSource: "Leroy Merlin",
+      externalSku: "COR-18",
+      externalUrl: "https://www.leroymerlin.com.br/produto-real",
+      availability: "https://schema.org/InStock",
+      currency: "BRL",
     });
   });
 
@@ -35,7 +43,7 @@ describe("Fluxo visual e integração do catálogo externo", () => {
     expect(getSinapiSearchState({ hasSearched: true, isFetching: false, hasError: false, resultCount: 2 })).toBe("results");
   });
 
-  it("mapeia o botão Usar SINAPI para um produto/serviço local", () => {
+  it("mapeia o botão Revisar SINAPI como referência manual não sincronizável", () => {
     expect(mapSinapiResultToProduct({
       description: "Pintura látex acrílica em paredes",
       code: "88489",
@@ -50,6 +58,10 @@ describe("Fluxo visual e integração do catálogo externo", () => {
       category: "SINAPI · Pintura",
       price: 16.42,
       unit: "m²",
+      externalSource: "SINAPI",
+      sourceType: "manual",
+      priceSource: "manual",
+      syncEnabled: false,
     });
   });
 });

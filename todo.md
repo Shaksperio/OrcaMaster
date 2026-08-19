@@ -186,7 +186,7 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [x] Remover fallbacks fictícios de preços e dados aleatórios em server/external-search.ts
 - [x] Expandir schema em drizzle/schema.ts com histórico de preços (productPriceHistory) e metadados de sincronização (sourceType, syncEnabled, externalUrl, externalStatus, etc.)
 - [ ] Implementar rotina robusta de sincronização em segundo plano (Heartbeat / sync routine)
-- [ ] Atualizar componentes de importação com pré-revisão e distinção de preço externo vs preço personalizado
+- [x] Atualizar componentes de importação com pré-revisão e distinção de preço externo vs preço personalizado
 - [x] Executar testes automatizados, verificação de tipos e build de produção
 
 ## Fase 22 - Eliminação de Dados Fictícios e Busca Externa Real (Firecrawl / Páginas Públicas)

@@ -26,6 +26,25 @@ export default function Products() {
     unit: "",
     stock: "",
   });
+  const [pendingImport, setPendingImport] = useState<{
+    name: string;
+    description?: string;
+    sku?: string;
+    category?: string;
+    price?: number;
+    unit?: string;
+    externalSource: string;
+    externalSku?: string;
+    externalUrl?: string;
+    availability?: string;
+    currency?: string;
+    sourceType: "manual" | "external";
+    priceSource: "manual" | "external";
+    syncEnabled: boolean;
+  } | null>(null);
+  const [reviewPrice, setReviewPrice] = useState("");
+  const [reviewPriceSource, setReviewPriceSource] = useState<"manual" | "external">("external");
+  const [reviewSyncEnabled, setReviewSyncEnabled] = useState(true);
 
   const { activeCompany } = useCompany();
 
@@ -82,17 +101,57 @@ export default function Products() {
   };
 
   const handleExternalProductSelect = async (item: LeroyProductSelection | SinapiServiceSelection) => {
-    if (!activeCompany) throw new Error("Selecione uma empresa primeiro.");
+    const itemWithMeta = item as LeroyProductSelection & Partial<SinapiServiceSelection>;
+    const isReferenceService = itemWithMeta.externalSource === "SINAPI";
+    const externalPrice = typeof itemWithMeta.price === "number" ? itemWithMeta.price : undefined;
+    setPendingImport({
+      name: itemWithMeta.name,
+      description: itemWithMeta.description,
+      sku: itemWithMeta.sku,
+      category: itemWithMeta.category,
+      price: externalPrice,
+      unit: itemWithMeta.unit,
+      externalSource: itemWithMeta.externalSource,
+      externalSku: itemWithMeta.externalSku ?? itemWithMeta.sku,
+      externalUrl: itemWithMeta.externalUrl,
+      availability: itemWithMeta.availability,
+      currency: itemWithMeta.currency,
+      sourceType: isReferenceService ? "manual" : "external",
+      priceSource: isReferenceService ? "manual" : "external",
+      syncEnabled: !isReferenceService,
+    });
+    setReviewPrice(externalPrice === undefined ? "" : String(externalPrice));
+    setReviewPriceSource(isReferenceService ? "manual" : "external");
+    setReviewSyncEnabled(!isReferenceService);
+  };
+
+  const handleConfirmExternalImport = async () => {
+    if (!activeCompany || !pendingImport) return;
+    const price = Number.parseFloat(reviewPrice.replace(",", "."));
+    if (!Number.isFinite(price) || price < 0) {
+      toast.error("Informe um preço válido antes de confirmar a importação.");
+      return;
+    }
+
     await createProductMutation.mutateAsync({
       companyId: activeCompany.id,
-      name: item.name,
-      description: item.description,
-      sku: item.sku,
-      category: item.category,
-      price: item.price,
-      unit: item.unit,
+      name: pendingImport.name,
+      description: pendingImport.description,
+      sku: pendingImport.sku,
+      category: pendingImport.category,
+      price,
+      unit: pendingImport.unit,
       stock: 0,
+      sourceType: pendingImport.sourceType,
+      externalSource: pendingImport.externalSource,
+      externalSku: pendingImport.externalSku,
+      externalUrl: pendingImport.externalUrl,
+      externalStatus: "active",
+      syncEnabled: pendingImport.sourceType === "external" && reviewSyncEnabled,
+      priceSource: reviewPriceSource,
+      externalPrice: pendingImport.price,
     });
+    setPendingImport(null);
   };
 
   const filteredProducts = products?.filter(p =>
@@ -219,6 +278,84 @@ export default function Products() {
             <SinapiSearch companyId={activeCompany.id} onSelect={handleExternalProductSelect} />
           </>
         )}
+
+        <Dialog open={Boolean(pendingImport)} onOpenChange={(open) => !open && setPendingImport(null)}>
+          <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Revisar importação externa</DialogTitle>
+              <DialogDescription>
+                Confirme ou edite os dados antes de salvar no catálogo. Campos que não vieram da fonte permanecem vazios.
+              </DialogDescription>
+            </DialogHeader>
+            {pendingImport && (
+              <div className="space-y-4">
+                <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                  Fonte consultada: <strong>{pendingImport.externalSource}</strong>
+                  {pendingImport.externalUrl && (
+                    <a href={pendingImport.externalUrl} target="_blank" rel="noreferrer" className="ml-2 underline">
+                      Abrir página original
+                    </a>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="review-name">Nome *</Label>
+                  <Input id="review-name" value={pendingImport.name} onChange={(event) => setPendingImport({ ...pendingImport, name: event.target.value })} />
+                </div>
+                <div>
+                  <Label htmlFor="review-description">Descrição</Label>
+                  <Textarea id="review-description" value={pendingImport.description ?? ""} onChange={(event) => setPendingImport({ ...pendingImport, description: event.target.value })} />
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <Label htmlFor="review-sku">SKU informado pela fonte</Label>
+                    <Input id="review-sku" value={pendingImport.sku ?? ""} onChange={(event) => setPendingImport({ ...pendingImport, sku: event.target.value || undefined })} />
+                  </div>
+                  <div>
+                    <Label htmlFor="review-category">Categoria</Label>
+                    <Input id="review-category" value={pendingImport.category ?? ""} onChange={(event) => setPendingImport({ ...pendingImport, category: event.target.value || undefined })} />
+                  </div>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <Label htmlFor="review-price">Preço usado no catálogo *</Label>
+                    <Input id="review-price" type="number" min="0" step="0.01" value={reviewPrice} onChange={(event) => setReviewPrice(event.target.value)} />
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Preço externo encontrado: {pendingImport.price === undefined ? "não informado" : `R$ ${pendingImport.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                    </p>
+                  </div>
+                  <div>
+                    <Label htmlFor="review-unit">Unidade</Label>
+                    <Input id="review-unit" value={pendingImport.unit ?? ""} onChange={(event) => setPendingImport({ ...pendingImport, unit: event.target.value || undefined })} />
+                  </div>
+                </div>
+                <div className="space-y-2 rounded-lg border p-3">
+                  <Label>Origem do preço</Label>
+                  <div className="flex flex-wrap gap-4 text-sm">
+                    <label className="flex items-center gap-2">
+                      <input type="radio" name="review-price-source" checked={reviewPriceSource === "external"} onChange={() => setReviewPriceSource("external")} />
+                      Usar preço externo informado
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input type="radio" name="review-price-source" checked={reviewPriceSource === "manual"} onChange={() => setReviewPriceSource("manual")} />
+                      Usar preço manual
+                    </label>
+                  </div>
+                  {pendingImport.sourceType === "external" && (
+                    <label className="flex items-center gap-2 text-sm">
+                      <input type="checkbox" checked={reviewSyncEnabled} onChange={(event) => setReviewSyncEnabled(event.target.checked)} />
+                      Atualizar este produto automaticamente quando a fonte externa estiver disponível
+                    </label>
+                  )}
+                </div>
+                {pendingImport.availability && <p className="text-xs text-muted-foreground">Disponibilidade informada pela fonte: {pendingImport.availability}</p>}
+                <Button onClick={handleConfirmExternalImport} disabled={createProductMutation.isPending || !pendingImport.name.trim()} className="w-full bg-primary text-primary-foreground">
+                  {createProductMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Confirmar importação
+                </Button>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* Search */}
         <Card className="mb-6 border-0 shadow-sm">

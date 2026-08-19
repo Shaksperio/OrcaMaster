@@ -15,6 +15,10 @@ export type SinapiServiceSelection = {
   category: string;
   price: number;
   unit: string;
+  externalSource: string;
+  sourceType: "manual";
+  priceSource: "manual";
+  syncEnabled: false;
 };
 
 type Props = {
@@ -39,6 +43,10 @@ export function mapSinapiResultToProduct(item: { description: string; code: stri
     category: item.category === "pintura" ? "SINAPI · Pintura" : "SINAPI · Impermeabilização",
     price: item.price,
     unit: item.unit,
+    externalSource: "SINAPI",
+    sourceType: "manual",
+    priceSource: "manual",
+    syncEnabled: false,
   };
 }
 
@@ -70,7 +78,7 @@ export function SinapiSearch({ companyId, onSelect }: Props) {
     setAddingCode(item.code);
     try {
       await onSelect(mapSinapiResultToProduct(item));
-      toast.success("Serviço adicionado ao cadastro local.");
+      toast.success("Serviço enviado para revisão de importação.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Não foi possível adicionar o serviço.");
     } finally {
@@ -137,7 +145,7 @@ export function SinapiSearch({ companyId, onSelect }: Props) {
                   <strong className="text-sky-800">R$ {item.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}/{item.unit}</strong>
                   <Button size="sm" onClick={() => handleAdd(item)} disabled={addingCode === item.code} className="bg-sky-700 text-white hover:bg-sky-800">
                     {addingCode === item.code ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Plus className="mr-1 h-4 w-4" />}
-                    Usar
+                    Revisar
                   </Button>
                 </div>
               </div>

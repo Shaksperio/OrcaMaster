@@ -238,6 +238,15 @@ export const appRouter = router({
         price: z.string().or(z.number()),
         unit: z.string().optional(),
         stock: z.number().optional(),
+        sourceType: z.enum(["manual", "external"]).optional(),
+        externalSource: z.string().optional(),
+        externalSku: z.string().optional(),
+        externalUrl: z.string().url().optional(),
+        externalStatus: z.string().optional(),
+        syncEnabled: z.boolean().optional(),
+        priceSource: z.enum(["manual", "external"]).optional(),
+        externalPrice: z.string().or(z.number()).optional(),
+        lastSyncedAt: z.coerce.date().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         const { isOwner, member } = await checkCompanyAccess(ctx.user.id, input.companyId);
@@ -246,6 +255,9 @@ export const appRouter = router({
           throw new TRPCError({ code: "FORBIDDEN" });
         }
         const price = typeof input.price === "string" ? parseFloat(input.price) : input.price;
+        const externalPrice = input.externalPrice === undefined
+          ? undefined
+          : typeof input.externalPrice === "string" ? parseFloat(input.externalPrice) : input.externalPrice;
         const product = await db.createProduct({
           companyId: input.companyId,
           name: input.name,
@@ -255,10 +267,19 @@ export const appRouter = router({
           price: price as any,
           unit: input.unit,
           stock: input.stock,
+          sourceType: input.sourceType,
+          externalSource: input.externalSource,
+          externalSku: input.externalSku,
+          externalUrl: input.externalUrl,
+          externalStatus: input.externalStatus,
+          syncEnabled: input.syncEnabled,
+          priceSource: input.priceSource,
+          externalPrice: externalPrice as any,
+          lastSyncedAt: input.lastSyncedAt,
         });
         // Sync to Firebase
         const productId = (product as any).insertId || (product as any).id;
-        if (productId) syncToFirebase("product", productId, { ...input, price }, { companyId: input.companyId });
+        if (productId) syncToFirebase("product", productId, { ...input, price, externalPrice }, { companyId: input.companyId });
         return product;
       }),
   }),

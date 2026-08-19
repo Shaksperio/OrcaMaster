@@ -12,8 +12,13 @@ export type LeroyProductSelection = {
   description: string;
   sku?: string;
   category?: string;
-  price: number;
-  unit: string;
+  price?: number;
+  unit?: string;
+  externalSource: string;
+  externalSku?: string;
+  externalUrl?: string;
+  availability?: string;
+  currency?: string;
 };
 
 type Props = {
@@ -30,15 +35,20 @@ export function getLeroySearchState(input: { hasSearched: boolean; isFetching: b
   return input.resultCount > 0 ? "results" : "empty";
 }
 
-export function mapLeroyResultToProduct(item: { name: string; brand?: string; type?: string; coverage?: string; code?: string; price?: number; unit?: string; category?: string }): LeroyProductSelection {
+export function mapLeroyResultToProduct(item: { name: string; brand?: string; type?: string; coverage?: string; code?: string; price?: number; unit?: string; productUrl?: string; availability?: string; currency?: string; category?: string }): LeroyProductSelection {
   const paintType = item.type || "Acrílica";
   return {
     name: item.name,
     description: `${item.brand ? `${item.brand} · ` : ""}${paintType}${item.coverage ? ` · Rendimento estimado: ${item.coverage}` : ""}`,
     sku: item.code,
-    category: `Leroy Merlin · ${paintType}`,
-    price: item.price ?? 0,
-    unit: item.unit || "un",
+    category: item.category || `Leroy Merlin · ${paintType}`,
+    price: item.price,
+    unit: item.unit,
+    externalSource: "Leroy Merlin",
+    externalSku: item.code,
+    externalUrl: item.productUrl,
+    availability: item.availability,
+    currency: item.currency,
   };
 }
 
@@ -69,7 +79,7 @@ export function LeroyProductSearch({ companyId, onSelect }: Props) {
     setAddingCode(item.code);
     try {
       await onSelect(mapLeroyResultToProduct(item));
-      toast.success("Produto adicionado ao cadastro local.");
+      toast.success("Resultado enviado para revisão de importação.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Não foi possível adicionar o produto.");
     } finally {
@@ -130,7 +140,7 @@ export function LeroyProductSearch({ companyId, onSelect }: Props) {
                   <strong className="text-emerald-800">{item.price !== undefined ? `R$ ${item.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "Preço não informado"}</strong>
                   <Button size="sm" onClick={() => handleAdd(item)} disabled={addingCode === item.code} className="bg-emerald-700 text-white hover:bg-emerald-800">
                     {addingCode === item.code ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Plus className="mr-1 h-4 w-4" />}
-                    Adicionar
+                    Revisar
                   </Button>
                 </div>
               </div>
