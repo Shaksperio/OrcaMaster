@@ -212,6 +212,6 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [x] Validar testes automatizados e build de produção
 
 ## Fase 18 - Sincronização com GitHub e Espelho/Fallback com Firebase
-- [ ] Verificar status do repositório git e branches locais
-- [ ] Implementar política de fallback de leitura para o Firebase em caso de indisponibilidade do banco principal
-- [ ] Validar testes automatizados e build de produção com a estratégia híbrida de dados
+- [x] Verificar status do repositório git e branches locais
+- [x] Implementar política de fallback de leitura para o Firebase em caso de indisponibilidade do banco principal
+- [x] Validar testes automatizados e build de produção com a estratégia híbrida de dados
