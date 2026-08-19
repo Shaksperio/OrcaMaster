@@ -25,7 +25,7 @@
 - [x] Implementar numeração sequencial automática (ORC-001, FAT-001) - PRIORIDADE ALTA
 - [x] Implementar controle de status (Rascunho, Enviado, Aprovado, Pago, etc.) - PRIORIDADE ALTA
 - [x] Implementar conversão automática de orçamento em fatura - PRIORIDADE MÉDIA
-- [ ] Implementar validade de orçamento com alertas - PRIORIDADE MÉDIA
+- [x] Implementar validade de orçamento com alertas - PRIORIDADE MÉDIA
 - [ ] Implementar duplicação de documentos - PRIORIDADE BAIXA
 - [ ] Implementar histórico de versões - PRIORIDADE BAIXA
 
@@ -37,27 +37,27 @@
 - [x] Implementar página de configurações com temas (UI)
 - [x] Implementar personalização de temas de cores (UI)
 - [x] Implementar página pública de validação via QR Code
-- [ ] Implementar upload de logo e marca d'água (backend)
-- [ ] Implementar campos personalizados nos documentos
+- [x] Implementar upload de logo e marca d'água (backend)
+- [x] Implementar campos personalizados nos documentos
 
 ## Fase 6: Gestão Financeira e Relatórios
-- [ ] Implementar controle de recebimentos (parciais, parcelados, atrasados)
-- [ ] Implementar contas a pagar
-- [ ] Implementar fluxo de caixa
+- [x] Implementar controle de recebimentos (parciais, parcelados, atrasados)
+- [x] Implementar contas a pagar
+- [x] Implementar fluxo de caixa
 - [ ] Implementar gráficos de faturamento mensal
 - [ ] Implementar relatório de inadimplência
 - [ ] Implementar exportação de relatórios (PDF e Excel)
 
 ## Fase 7: Dashboard e Página Pública
-- [ ] Implementar dashboard com indicadores financeiros
-- [ ] Implementar página pública de validação de documentos via QR Code
+- [x] Implementar dashboard com indicadores financeiros
+- [x] Implementar página pública de validação de documentos via QR Code
 - [ ] Implementar rastreamento de QR Code escaneado
 
 ## Fase 8: Alertas e Notificações
 - [ ] Implementar alertas por e-mail (orçamento aprovado, fatura vencida, pagamento recebido)
-- [ ] Implementar alertas de orçamento prestes a expirar
+- [x] Implementar alertas de orçamento prestes a expirar
 - [ ] Implementar notificações push
-- [ ] Implementar alerta de inadimplência
+- [x] Implementar alerta de inadimplência
 
 ## Fase 9: Integração com IA
 - [ ] Implementar sugestão de preços com base em histórico
@@ -67,23 +67,23 @@
 - [x] Redesenhar com paleta de cores corporativas (laranja + verde escuro) - PRIORIDADE ALTA
 - [x] Atualizar componentes com novas cores (index.css, AppLayout, Dashboard, Login)
 - [x] Atualizar sidebar, headers e botões
-- [ ] Implementar testes unitários
-- [ ] Testar fluxos principais
-- [ ] Otimizar performance
-- [ ] Preparar para lançamento
+- [x] Implementar testes unitários
+- [x] Testar fluxos principais
+- [x] Otimizar performance
+- [x] Preparar para lançamento
 
 
 ## Testes de Funcionalidades
-- [ ] Testar navegação do menu sidebar (todos os links)
-- [ ] Testar CRUD de Clientes (criar, listar, editar, deletar)
-- [ ] Testar CRUD de Produtos (criar, listar, editar, deletar)
-- [ ] Testar CRUD de Profissionais (criar, listar, editar, deletar)
-- [ ] Testar botões de ação rápida no Dashboard
-- [ ] Testar links de navegação entre páginas
-- [ ] Testar autenticação (login/logout)
-- [ ] Testar página de validação pública
-- [ ] Testar configurações e personalização
-- [ ] Corrigir bugs encontrados durante testes
+- [x] Testar navegação do menu sidebar (todos os links)
+- [x] Testar CRUD de Clientes (criar, listar, editar, deletar)
+- [x] Testar CRUD de Produtos (criar, listar, editar, deletar)
+- [x] Testar CRUD de Profissionais (criar, listar, editar, deletar)
+- [x] Testar botões de ação rápida no Dashboard
+- [x] Testar links de navegação entre páginas
+- [x] Testar autenticação (login/logout)
+- [x] Testar página de validação pública
+- [x] Testar configurações e personalização
+- [x] Corrigir bugs encontrados durante testes
 
 ## Correção CRUD Configurações > Empresa
 - [x] Diagnosticar causa raiz: inputs disabled, falta de state controlado, falta de integração API
@@ -126,7 +126,7 @@
 - [x] Testar funcionalidade completa
 - [x] Corrigir persistência da marca d'água (criar theme default se não existir)
 - [x] Carregar watermarkUrl no Settings.tsx ao abrir página
-- [ ] Push para GitHub
+- [x] Push para GitHub
 
 ## Fase 7 - Busca Externa de Produtos (Leroy Merlin) e Serviços (SINAPI)
 - [x] Implementar procedure tRPC de busca Leroy Merlin (API real + fallback simulado)
@@ -137,7 +137,7 @@
 - [x] Integrar resultados com cadastro local (botão + para adicionar)
 - [x] Implementar tags visuais (Leroy Merlin verde, SINAPI azul)
 - [x] Testar compilação e funcionalidade
-- [ ] Push para GitHub
+- [x] Push para GitHub
 
 Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como avaliações, depoimentos ou conteúdo gerado de clientes.
 
@@ -155,7 +155,7 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [x] Implementar compartilhamento por WhatsApp com mensagem e link do orçamento
 - [x] Implementar compartilhamento por e-mail com assunto, mensagem e link do orçamento
 - [x] Adicionar testes do PDF, impressão e compartilhamento
-- [ ] Salvar checkpoint e atualizar o GitHub
+- [x] Salvar checkpoint e atualizar o GitHub
 
 ### Validação adicional do fluxo de documento
 - [x] Adicionar teste do fluxo cliente → rota real de geração/baixar PDF, cobrindo sucesso e erro
