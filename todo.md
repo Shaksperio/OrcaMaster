@@ -210,3 +210,8 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [x] Tornar o cabeçalho e os botões de ação (Voltar, Salvar) totalmente flexíveis e responsivos em EditQuotation.tsx
 - [x] Revisar margens, espaçamentos e grids em CreateQuotation.tsx e EditQuotation.tsx
 - [x] Validar testes automatizados e build de produção
+
+## Fase 18 - Sincronização com GitHub e Espelho/Fallback com Firebase
+- [ ] Verificar status do repositório git e branches locais
+- [ ] Implementar política de fallback de leitura para o Firebase em caso de indisponibilidade do banco principal
+- [ ] Validar testes automatizados e build de produção com a estratégia híbrida de dados
