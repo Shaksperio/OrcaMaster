@@ -55,7 +55,7 @@ export function SinapiSearch({ companyId, onSelect }: Props) {
     hasSearched: Boolean(activeSearch.term),
     isFetching: searchQuery.isFetching,
     hasError: Boolean(searchQuery.error),
-    resultCount: searchQuery.data?.results.length ?? 0,
+    resultCount: searchQuery.data?.results?.length ?? 0,
   });
 
   const handleSearch = () => {
@@ -66,7 +66,7 @@ export function SinapiSearch({ companyId, onSelect }: Props) {
     setActiveSearch({ term: term.trim(), category: category === "todas" ? undefined : category });
   };
 
-  const handleAdd = async (item: NonNullable<typeof searchQuery.data>["results"][number]) => {
+  const handleAdd = async (item: { code: string; description: string; unit: string; price: number; category: "pintura" | "impermeabilizacao"; referenceYear?: number }) => {
     setAddingCode(item.code);
     try {
       await onSelect(mapSinapiResultToProduct(item));
@@ -113,7 +113,6 @@ export function SinapiSearch({ companyId, onSelect }: Props) {
         </div>
 
         {searchQuery.error && <p className="mt-3 text-sm text-red-700">{searchQuery.error.message}</p>}
-        {searchQuery.data?.message && <p className="mt-3 text-xs text-slate-600">{searchQuery.data.message}</p>}
 
         {searchState === "empty" && (
           <p className="mt-4 rounded-md border border-dashed bg-white p-4 text-sm text-slate-500">Nenhum serviço encontrado para esta busca.</p>
@@ -121,7 +120,7 @@ export function SinapiSearch({ companyId, onSelect }: Props) {
 
         {searchQuery.data?.results && searchQuery.data.results.length > 0 && (
           <div className="mt-4 space-y-2">
-            {searchQuery.data.results.map((item) => (
+            {searchQuery.data.results.map((item: any) => (
               <div key={item.code} className="flex flex-col gap-3 rounded-lg border bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">

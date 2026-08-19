@@ -27,6 +27,8 @@ describe("Fluxo visual e integração do catálogo externo", () => {
       category: "Leroy Merlin · Acrílica",
       price: 199.9,
       unit: "un",
+      externalSource: "Leroy Merlin",
+      externalSku: "COR-18",
     });
   });
 

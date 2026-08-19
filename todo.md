@@ -221,3 +221,9 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [x] Atualizar o Dashboard para métricas editoriais e cartões de conteúdo organizados
 - [x] Validar testes automatizados e build de produção
 - [x] Sincronizar atualizações com o repositório GitHub
+
+## Fase 20 - Catálogo Híbrido Avançado (Leroy Merlin e Acal Home Center)
+- [x] Criar adaptadores normalizados para Leroy Merlin e Acal Home Center em server/external-search.ts
+- [x] Atualizar o esquema e banco para suportar campos de origem, SKU de fornecedor, última sincronização e histórico de preços
+- [x] Atualizar o frontend Products.tsx para busca agrupada por fornecedor, botão de importação revisável e tags de origem
+- [x] Validar testes automatizados e build de produção

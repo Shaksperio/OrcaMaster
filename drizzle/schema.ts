@@ -120,6 +120,9 @@ export const products = mysqlTable("products", {
   price: decimal("price", { precision: 12, scale: 2 }).notNull(),
   unit: varchar("unit", { length: 20 }), // un, m, m2, h, etc.
   stock: int("stock").default(0),
+  externalSource: varchar("externalSource", { length: 50 }), // 'Leroy Merlin' | 'Acal Home Center' | 'SINAPI'
+  externalSku: varchar("externalSku", { length: 100 }),
+  lastSyncedAt: timestamp("lastSyncedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({

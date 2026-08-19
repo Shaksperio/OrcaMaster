@@ -6,7 +6,7 @@ import { z } from "zod";
 import * as db from "./db";
 import { TRPCError } from "@trpc/server";
 import { syncToFirebase } from "./firebase-sync";
-import { searchLeroyMerlin, searchSinapi } from "./external-search";
+import { searchLeroyMerlin, searchAcalHomeCenter, searchAllExternalProviders, searchSinapi } from "./external-search";
 import { eq, and } from "drizzle-orm";
 import { companyMembers, companies } from "../drizzle/schema";
 
@@ -203,6 +203,20 @@ export const appRouter = router({
         return searchLeroyMerlin(input.searchTerm);
       }),
 
+    searchAcal: protectedProcedure
+      .input(z.object({ companyId: z.number(), searchTerm: z.string().min(3) }))
+      .query(async ({ input, ctx }) => {
+        await checkCompanyAccess(ctx.user.id, input.companyId);
+        return searchAcalHomeCenter(input.searchTerm);
+      }),
+
+    searchAllExternal: protectedProcedure
+      .input(z.object({ companyId: z.number(), searchTerm: z.string().min(3) }))
+      .query(async ({ input, ctx }) => {
+        await checkCompanyAccess(ctx.user.id, input.companyId);
+        return searchAllExternalProviders(input.searchTerm);
+      }),
+
     searchSinapi: protectedProcedure
       .input(z.object({
         companyId: z.number(),
@@ -231,6 +245,8 @@ export const appRouter = router({
         price: z.string().or(z.number()),
         unit: z.string().optional(),
         stock: z.number().optional(),
+        externalSource: z.string().optional(),
+        externalSku: z.string().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         const { isOwner, member } = await checkCompanyAccess(ctx.user.id, input.companyId);
@@ -248,6 +264,9 @@ export const appRouter = router({
           price: price as any,
           unit: input.unit,
           stock: input.stock,
+          externalSource: input.externalSource,
+          externalSku: input.externalSku,
+          lastSyncedAt: input.externalSource ? new Date() : undefined,
         });
         // Sync to Firebase
         const productId = (product as any).insertId || (product as any).id;

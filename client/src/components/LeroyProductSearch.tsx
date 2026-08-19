@@ -14,6 +14,8 @@ export type LeroyProductSelection = {
   category?: string;
   price: number;
   unit: string;
+  externalSource?: string;
+  externalSku?: string;
 };
 
 type Props = {
@@ -38,6 +40,8 @@ export function mapLeroyResultToProduct(item: { name: string; brand?: string; ty
     category: `Leroy Merlin · ${item.type}`,
     price: item.price,
     unit: item.unit,
+    externalSource: "Leroy Merlin",
+    externalSku: item.code,
   };
 }
 
@@ -103,8 +107,11 @@ export function LeroyProductSearch({ companyId, onSelect }: Props) {
         </div>
 
         {searchQuery.error && <p className="mt-3 text-sm text-red-700">{searchQuery.error.message}</p>}
-        {searchQuery.data?.message && (
-          <p className="mt-3 text-xs text-slate-600">{searchQuery.data.message}</p>
+        {searchQuery.data?.error && (
+          <p className="mt-3 text-xs text-amber-700">Aviso do fornecedor: {searchQuery.data.error}</p>
+        )}
+        {searchQuery.data?.simulated && (
+          <p className="mt-1 text-[11px] text-amber-600">Exibindo dados simulados de contingência (servidor externo indisponível no momento).</p>
         )}
 
         {searchState === "empty" && (
