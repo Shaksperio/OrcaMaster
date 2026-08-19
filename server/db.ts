@@ -1,6 +1,6 @@
 import { eq, and, desc, asc, sql, count, isNotNull, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, companies, clients, products, productPriceHistory, professionals, quotations, quotationItems, invoices, invoiceItems, companyMembers, themes, expenses } from "../drizzle/schema";
+import { InsertUser, users, companies, clients, products, productPriceHistory, professionals, suppliers, quotations, quotationItems, invoices, invoiceItems, companyMembers, themes, expenses } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -202,6 +202,40 @@ export async function createProfessional(data: typeof professionals.$inferInsert
   if (!db) throw new Error("Database not available");
   const result = await db.insert(professionals).values(data);
   return result[0];
+}
+
+// Supplier queries
+export async function getCompanySuppliers(companyId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(suppliers).where(eq(suppliers.companyId, companyId)).orderBy(desc(suppliers.createdAt));
+}
+
+export async function getSupplierById(supplierId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(suppliers).where(eq(suppliers.id, supplierId)).limit(1);
+  return result[0];
+}
+
+export async function createSupplier(data: typeof suppliers.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(suppliers).values(data);
+  return result[0];
+}
+
+export async function updateSupplier(supplierId: number, data: Partial<typeof suppliers.$inferInsert>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(suppliers).set(data).where(eq(suppliers.id, supplierId));
+  return getSupplierById(supplierId);
+}
+
+export async function deleteSupplier(supplierId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(suppliers).where(eq(suppliers.id, supplierId));
 }
 
 // Quotation queries

@@ -185,7 +185,7 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 ## Fase 21 - Catálogo Híbrido Avançado e Sincronização Automática (Inspiração Baseada no Guia)
 - [x] Remover fallbacks fictícios de preços e dados aleatórios em server/external-search.ts
 - [x] Expandir schema em drizzle/schema.ts com histórico de preços (productPriceHistory) e metadados de sincronização (sourceType, syncEnabled, externalUrl, externalStatus, etc.)
-- [ ] Implementar rotina robusta de sincronização em segundo plano (Heartbeat / sync routine)
+- [x] Implementar rotina robusta de sincronização em segundo plano (Heartbeat / sync routine com testes e callback autenticado)
 - [x] Atualizar componentes de importação com pré-revisão e distinção de preço externo vs preço personalizado
 - [x] Executar testes automatizados, verificação de tipos e build de produção
 

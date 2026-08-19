@@ -23,6 +23,7 @@ type SyncEntity =
   | "client"
   | "product"
   | "professional"
+  | "supplier"
   | "quotation"
   | "quotationItem"
   | "invoice"
@@ -164,6 +165,8 @@ function getFirebasePath(entity: SyncEntity, id: number, options: SyncOptions): 
       return companyId ? `companies/${companyId}/products/${id}` : null;
     case "professional":
       return companyId ? `companies/${companyId}/professionals/${id}` : null;
+    case "supplier":
+      return companyId ? `companies/${companyId}/suppliers/${id}` : null;
     case "quotation":
       return companyId ? `companies/${companyId}/quotations/${id}` : null;
     case "quotationItem":
