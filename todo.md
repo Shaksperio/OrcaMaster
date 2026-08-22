@@ -205,3 +205,10 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [x] Executar testes da busca, verificação de tipos e build de produção
 - [x] Adaptar a busca externa para operar sem API Firecrawl, usando apenas requisições server-side a fontes públicas e sem fallback simulado
 - [x] Validar parsing defensivo do HTML/JSON direto, mantendo campos ausentes sem placeholders ou dados inferidos
+
+## Nova integração — Assistente LLM inspirado no OmniRoute
+- [x] Definir casos de uso do assistente (orçamentos, produtos, clientes, fluxo de caixa, despesas, faturas e resumos financeiros)
+- [x] Implementar chamada LLM somente no servidor usando invokeLLM e contexto filtrado por empresa
+- [x] Adicionar chat contextual com respostas textuais contextualizadas e confirmação antes de ações mutáveis
+- [x] Implementar limites de segurança, privacidade, custos, timeout e fallback controlado por erro transparente, com redação de dados sensíveis e testes de timeout/concorrência
+- [x] Adicionar testes do assistente, executar pnpm test --run, pnpm check e pnpm build após os controles finais

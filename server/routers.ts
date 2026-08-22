@@ -7,6 +7,7 @@ import * as db from "./db";
 import { TRPCError } from "@trpc/server";
 import { syncToFirebase } from "./firebase-sync";
 import { searchLeroyMerlin, searchAcalHomeCenter, searchSinapi } from "./external-search";
+import { answerCompanyAssistant } from "./ai-assistant";
 import { eq, and } from "drizzle-orm";
 import { companyMembers, companies } from "../drizzle/schema";
 
@@ -33,6 +34,26 @@ function checkRolePermission(role: string | undefined, isOwner: boolean, require
 }
 
 export const appRouter = router({
+  ai: router({
+    assistant: protectedProcedure
+      .input(z.object({
+        companyId: z.number().int().positive(),
+        messages: z.array(z.object({
+          role: z.enum(["user", "assistant"]),
+          content: z.string().min(1).max(4000),
+        })).min(1).max(12),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        await checkCompanyAccess(ctx.user.id, input.companyId);
+        try {
+          return await answerCompanyAssistant(input.companyId, input.messages);
+        } catch (error) {
+          console.error("[AI Assistant] Failed:", error);
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Não foi possível obter uma resposta do assistente agora." });
+        }
+      }),
+  }),
+
   system: systemRouter,
   
   auth: router({
