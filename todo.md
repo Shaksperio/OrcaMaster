@@ -8,7 +8,7 @@
 ## Fase 2: Autenticação e Gestão de Empresas
 - [x] Implementar tela de login (Google OAuth + E-mail/Senha)
 - [ ] Implementar recuperação de senha
-- [ ] Criar tela de cadastro de empresa
+- [x] Criar tela de cadastro de empresa
 - [x] Implementar gestão de múltiplas empresas por usuário (procedures tRPC)
 - [x] Implementar controle de acesso por perfis (admin, gerente, colaborador) (procedures tRPC)
 
@@ -60,8 +60,8 @@
 - [x] Implementar alerta de inadimplência
 
 ## Fase 9: Integração com IA
-- [ ] Implementar sugestão de preços com base em histórico
-- [ ] Implementar análise de padrões de orçamentos
+- [x] Implementar sugestão de preços com base em histórico
+- [x] Implementar análise de padrões de orçamentos
 
 ## Fase 10: Refinamentos Visuais e Testes
 - [x] Redesenhar com paleta de cores corporativas (laranja + verde escuro) - PRIORIDADE ALTA
@@ -281,8 +281,8 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [x] Implementar rastreamento de validações via QR Code com consentimento e isolamento por empresa
 - [ ] Implementar alertas transacionais por e-mail e notificações push somente com configuração explícita
 - [ ] Implementar recuperação de acesso e cadastro de empresa compatíveis com a autenticação atual
-- [ ] Adicionar sugestões de preços baseadas exclusivamente no histórico real
-- [ ] Adicionar análise de padrões de orçamentos baseada exclusivamente nos dados reais
+- [x] Adicionar sugestões de preços baseadas exclusivamente no histórico real
+- [x] Adicionar análise de padrões de orçamentos baseada exclusivamente nos dados reais
 
 
 ## Fase 26 - Assistente global no aplicativo
@@ -352,3 +352,11 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [x] Implementar restauração com validação, prévia, confirmação e isolamento por empresa
 - [x] Preservar o MySQL como principal e o Firebase como espelho alternativo
 - [x] Testar OAuth, backup, fila, falhas, restauração, TypeScript e build
+
+## Correção de lacuna — análise de padrões
+- [x] Criar UI para análise de padrões de orçamentos usando ai.quotationPatterns, com loading, erro, estado vazio e dados reais por empresa
+- [x] Adicionar teste de integração/frontend cobrindo a visualização da análise de padrões no app
+
+## Correção adicional — distribuição por status
+- [x] Exibir na UI de Relatórios a distribuição de padrões por status (`byStatus`) retornada por `ai.quotationPatterns`, com contagem e valor por status
+- [x] Adicionar teste de integração/frontend que valide a renderização dos padrões por status com dados reais e estados loading/erro/vazio

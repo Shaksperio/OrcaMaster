@@ -44,6 +44,15 @@ describe("Contrato de acessibilidade das telas renovadas", () => {
     expect(quotations).toContain("PDF");
   });
 
+  it("expõe análise de padrões reais nos Relatórios com estados de dados", () => {
+    const reports = readPage("Reports.tsx");
+    expect(reports).toContain("trpc.ai.quotationPatterns.useQuery");
+    expect(reports).toContain("Calculando padrões...");
+    expect(reports).toContain("Não foi possível carregar a análise agora.");
+    expect(reports).toContain("Ainda não há orçamentos suficientes para analisar.");
+    expect(reports).toContain("Valor médio");
+  });
+
   it("mantém nomes acessíveis nos alvos de impressão e ações do preview", () => {
     const preview = readPage("QuotationPreview.tsx");
     expect(preview).toContain('data-testid="quotation-print-target"');

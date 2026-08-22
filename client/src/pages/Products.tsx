@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Search, Package } from "lucide-react";
+import { Plus, Search, Package, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
@@ -54,6 +54,17 @@ export default function Products() {
   );
 
   const utils = trpc.useUtils();
+  const [priceSuggestions, setPriceSuggestions] = useState<Record<number, { suggestedPrice: string; basedOnQuotations: number; confidence: string } | null>>({});
+  const loadPriceSuggestion = async (productId: number) => {
+    if (!activeCompany) return;
+    try {
+      const suggestion = await utils.ai.priceSuggestion.fetch({ companyId: activeCompany.id, productId });
+      setPriceSuggestions((current) => ({ ...current, [productId]: suggestion }));
+      if (!suggestion) toast.info("Ainda não há histórico suficiente para sugerir um preço.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível calcular a sugestão.");
+    }
+  };
 
   const createProductMutation = trpc.products.create.useMutation({
     onSuccess: () => {
@@ -401,6 +412,7 @@ export default function Products() {
                       <th className="text-left py-3 px-4 font-medium text-muted-foreground">Categoria</th>
                       <th className="text-left py-3 px-4 font-medium text-muted-foreground">Preço</th>
                       <th className="text-left py-3 px-4 font-medium text-muted-foreground">Estoque</th>
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Sugestão</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -413,6 +425,7 @@ export default function Products() {
                           R$ {product.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                         </td>
                         <td className="py-3 px-4 text-muted-foreground">{product.stock || 0} {product.unit || "un"}</td>
+                        <td className="py-3 px-4"><Button variant="ghost" size="sm" onClick={() => loadPriceSuggestion(product.id)} title="Calcular sugestão com histórico real"><Sparkles className="mr-1 h-4 w-4" />{priceSuggestions[product.id] ? `R$ ${Number(priceSuggestions[product.id]?.suggestedPrice).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "Calcular"}</Button>{priceSuggestions[product.id] && <p className="mt-1 text-xs text-muted-foreground">{priceSuggestions[product.id]?.basedOnQuotations} orçamento(s) · confiança {Math.round(Number(priceSuggestions[product.id]?.confidence) * 100)}%</p>}</td>
                       </tr>
                     ))}
                   </tbody>
