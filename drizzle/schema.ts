@@ -420,6 +420,29 @@ export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
 
 /**
+ * Pending and executed assistant actions. Payloads are stored server-side and require explicit confirmation.
+ */
+export const assistantActionConfirmations = mysqlTable("assistantActionConfirmations", {
+  id: int("id").autoincrement().primaryKey(),
+  companyId: int("companyId").notNull(),
+  userId: int("userId").notNull(),
+  action: varchar("action", { length: 80 }).notNull(),
+  payload: json("payload").notNull(),
+  confirmationToken: varchar("confirmationToken", { length: 128 }).notNull().unique(),
+  status: mysqlEnum("status", ["pending", "executed", "cancelled", "expired"]).default("pending").notNull(),
+  expiresAt: datetime("expiresAt").notNull(),
+  executedAt: datetime("executedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  companyIdIdx: index("assistantActionConfirmations_companyId_idx").on(table.companyId),
+  userIdIdx: index("assistantActionConfirmations_userId_idx").on(table.userId),
+  statusIdx: index("assistantActionConfirmations_status_idx").on(table.status),
+}));
+
+export type AssistantActionConfirmation = typeof assistantActionConfirmations.$inferSelect;
+export type InsertAssistantActionConfirmation = typeof assistantActionConfirmations.$inferInsert;
+
+/**
  * Price suggestions (AI-powered)
  */
 export const priceSuggestions = mysqlTable("priceSuggestions", {

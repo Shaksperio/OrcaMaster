@@ -8,6 +8,7 @@ import { TRPCError } from "@trpc/server";
 import { syncToFirebase } from "./firebase-sync";
 import { searchLeroyMerlin, searchAcalHomeCenter, searchSinapi } from "./external-search";
 import { answerCompanyAssistant } from "./ai-assistant";
+import { getAssistantActionPolicy, prepareAssistantAction, confirmAssistantAction } from "./assistant-actions";
 import { eq, and } from "drizzle-orm";
 import { companyMembers, companies } from "../drizzle/schema";
 
@@ -70,6 +71,33 @@ export const appRouter = router({
         } catch (error) {
           console.error("[AI Assistant] Failed:", error);
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Não foi possível obter uma resposta do assistente agora." });
+        }
+      }),
+    prepareAction: protectedProcedure
+      .input(z.object({
+        companyId: z.number().int().positive(),
+        action: z.enum(["product.create", "product.update", "product.delete", "supplier.create", "supplier.update", "supplier.delete", "quotation.updateStatus", "quotation.delete", "invoice.updateStatus", "invoice.delete", "expense.updateStatus", "expense.delete", "company.update"]),
+        payload: z.record(z.string(), z.unknown()),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const access = await checkCompanyAccess(ctx.user.id, input.companyId);
+        const policy = getAssistantActionPolicy(input.action);
+        if (!access.isOwner || !policy.roles.includes("owner")) throw new TRPCError({ code: "FORBIDDEN", message: `Ação ${policy.category} disponível somente ao proprietário.` });
+        try {
+          return await prepareAssistantAction(input.companyId, ctx.user.id, input.action, input.payload);
+        } catch (error) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: error instanceof Error ? error.message : "Ação não permitida." });
+        }
+      }),
+    confirmAction: protectedProcedure
+      .input(z.object({ companyId: z.number().int().positive(), confirmationToken: z.string().length(64) }))
+      .mutation(async ({ input, ctx }) => {
+        const access = await checkCompanyAccess(ctx.user.id, input.companyId);
+        if (!access.isOwner) throw new TRPCError({ code: "FORBIDDEN", message: "Somente o proprietário pode confirmar ações do Assistente." });
+        try {
+          return await confirmAssistantAction(input.companyId, ctx.user.id, input.confirmationToken);
+        } catch (error) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: error instanceof Error ? error.message : "Não foi possível confirmar a ação." });
         }
       }),
   }),

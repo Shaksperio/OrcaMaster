@@ -17,12 +17,12 @@ import { buildEmailShareUrl, buildQuotationShareMessage, buildWhatsAppShareUrl }
 import { buildQuotationPdfUrl } from "@/lib/quotation-document-actions";
 
 const statusColors: Record<string, string> = {
-  rascunho: "bg-muted text-muted-foreground",
-  enviado: "bg-blue-100 text-blue-700",
-  aprovado: "bg-green-100 text-green-700",
-  rejeitado: "bg-red-100 text-red-700",
-  vencido: "bg-orange-100 text-orange-700",
-  convertido: "bg-purple-100 text-purple-700",
+  rascunho: "bg-muted text-muted-foreground border-border",
+  enviado: "bg-blue-50 text-blue-700 border-blue-200",
+  aprovado: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  rejeitado: "bg-red-50 text-red-700 border-red-200",
+  vencido: "bg-amber-50 text-amber-700 border-amber-200",
+  convertido: "bg-violet-50 text-violet-700 border-violet-200",
 };
 
 const statusLabels: Record<string, string> = {
@@ -122,30 +122,31 @@ export default function Quotations() {
 
   return (
     <AppLayout>
-      <div className="p-6 md:p-8 max-w-7xl mx-auto">
+      <div className="mx-auto w-full max-w-[1440px] space-y-6 px-4 py-7 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Orçamentos</h1>
-            <p className="text-muted-foreground mt-2">Gerencie todos os seus orçamentos</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">Vendas</p>
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground">Orçamentos</h1>
+            <p className="mt-2 text-sm text-muted-foreground">Crie, acompanhe e converta propostas em poucos passos.</p>
           </div>
-          <Button className="bg-[#1B5E20] hover:bg-[#1B5E20]/90 text-white gap-2" onClick={() => navigate("/quotations/new")}>
+          <Button className="gap-2 bg-primary text-primary-foreground shadow-sm hover:bg-primary/90" onClick={() => navigate("/quotations/new")}>
             <Plus className="w-4 h-4" />
             Novo Orçamento
           </Button>
         </div>
 
         {/* Search */}
-        <Card className="mb-6 border-0 shadow-sm">
-          <CardContent className="pt-6">
+        <Card className="border-border/70 shadow-sm">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex gap-4">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
-                <Input
+                  <Input
                   placeholder="Buscar por número ou cliente..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="h-11 border-border/70 bg-background pl-10 shadow-none focus-visible:ring-primary/30"
                 />
               </div>
             </div>
@@ -153,9 +154,9 @@ export default function Quotations() {
         </Card>
 
         {/* Quotations List */}
-        <Card className="border-0 shadow-sm">
-          <CardHeader>
-            <CardTitle>Lista de Orçamentos</CardTitle>
+        <Card className="border-border/70 shadow-sm">
+          <CardHeader className="border-b border-border/60 px-5 py-4">
+            <CardTitle className="text-base">Lista de Orçamentos</CardTitle>
             <CardDescription>Total: {filteredQuotations.length} orçamentos</CardDescription>
           </CardHeader>
           <CardContent>
@@ -190,12 +191,12 @@ export default function Quotations() {
                       <th className="text-center py-3 px-4 font-medium text-muted-foreground">Ações</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-border/60">
                     {filteredQuotations.map((quotation: any) => (
-                      <tr key={quotation.id} className="border-b border-slate-100 hover:bg-muted/50 transition-colors">
+                      <tr key={quotation.id} className="transition-colors hover:bg-muted/40">
                         <td className="py-3 px-4 font-semibold text-foreground">{quotation.number}</td>
                         <td className="py-3 px-4 text-foreground">{customerMap.get(quotation.clientId) || `#${quotation.clientId}`}</td>
-                        <td className="py-3 px-4 font-semibold text-right text-[#1B5E20]">{formatCurrency(quotation.total)}</td>
+                        <td className="py-3 px-4 text-right font-semibold tabular-nums text-primary">{formatCurrency(quotation.total)}</td>
                         <td className="py-3 px-4">
                           <Badge className={statusColors[quotation.status] || "bg-slate-100 text-slate-700"}>
                             {statusLabels[quotation.status] || quotation.status}

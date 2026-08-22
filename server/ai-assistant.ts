@@ -6,6 +6,25 @@ export type AssistantMessage = {
   content: string;
 };
 
+export type AssistantActionProposal = {
+  action: string;
+  payload: Record<string, unknown>;
+};
+
+function extractActionProposal(content: string) {
+  const match = content.match(/<assistant_action>([\s\S]*?)<\/assistant_action>/i);
+  if (!match) return { content: content.trim(), actionProposal: undefined };
+  try {
+    const parsed = JSON.parse(match[1]);
+    if (typeof parsed?.action !== "string" || !parsed?.payload || typeof parsed.payload !== "object") {
+      return { content: content.replace(match[0], "").trim(), actionProposal: undefined };
+    }
+    return { content: content.replace(match[0], "").trim(), actionProposal: parsed as AssistantActionProposal };
+  } catch {
+    return { content: content.replace(match[0], "").trim(), actionProposal: undefined };
+  }
+}
+
 const MAX_MESSAGES = 12;
 const MAX_MESSAGE_LENGTH = 4000;
 const MAX_CONTEXT_ROWS = 40;
@@ -91,7 +110,9 @@ export async function answerCompanyAssistant(companyId: number, messages: Assist
           "Use apenas os dados do contexto da empresa fornecido nesta solicitação.",
           "Se um dado não estiver no contexto, diga que não foi encontrado; nunca invente valores, clientes, preços, datas ou indicadores.",
           "Você pode explicar, comparar, resumir e sugerir próximos passos, mas não pode alterar banco, enviar mensagens, emitir documentos ou sincronizar produtos.",
-          "Quando a pergunta exigir uma ação mutável, descreva a ação e peça confirmação explícita para uma futura implementação.",
+          "Quando o usuário pedir uma alteração, exclusão ou criação, não execute nada: explique a ação e inclua, ao final, uma única tag <assistant_action> contendo JSON com action e payload.",
+          "Ações permitidas: product.create, product.update, product.delete, supplier.create, supplier.update, supplier.delete, quotation.updateStatus, quotation.delete, invoice.updateStatus, invoice.delete, expense.updateStatus, expense.delete, company.update.",
+          "O payload deve conter somente dados explicitamente pedidos pelo usuário e, para edição/exclusão, o id do registro. Nunca invente ids; se não houver id inequívoco, peça esclarecimento e não inclua a tag.",
           `CONTEXTO DA EMPRESA (dados internos, companyId=${companyId}): ${JSON.stringify(context)}`,
         ].join("\n"),
       },
@@ -108,7 +129,8 @@ export async function answerCompanyAssistant(companyId: number, messages: Assist
     if (typeof content !== "string" || !content.trim()) {
       throw new Error("O assistente não retornou uma resposta válida.");
     }
-    return { content: content.trim() };
+    const parsed = extractActionProposal(content);
+    return { content: parsed.content || "A proposta foi preparada para sua revisão.", actionProposal: parsed.actionProposal };
   } catch (error) {
     const message = error instanceof Error ? error.message : "indisponibilidade temporária";
     console.warn(`[AI Assistant] Fallback seguro ativado: ${message}`);

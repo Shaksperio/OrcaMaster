@@ -238,3 +238,35 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [x] Criar teste de integração real para Quotations.tsx renderizando, acionando histórico e validando snapshot read-only
 - [x] Criar teste de integração real para Invoices.tsx renderizando, acionando histórico e validando snapshot read-only
 - [x] Reexecutar pnpm test --run, pnpm check e pnpm build após substituir testes estáticos por testes reais de UI
+
+## Assistente com ações confirmadas e administração protegida
+- [x] Definir matriz de permissões para ações financeiras, operacionais e administrativas
+- [x] Implementar prévia de ação e confirmação explícita do proprietário antes de qualquer gravação, edição ou exclusão
+- [x] Executar ações somente no servidor, com validação de usuário, empresa, função e idempotência
+- [x] Registrar auditoria das ações confirmadas e bloquear comandos sem confirmação
+- [x] Adicionar testes de autorização, confirmação, isolamento por empresa e ações destrutivas
+
+
+## Fase 23 - Assistente operacional com confirmação explícita
+- [x] Criar catálogo server-side de ações mutáveis permitidas, sem execução automática
+- [x] Criar prévia com token aleatório de curta duração e payload revisável
+- [x] Exigir autorização do proprietário da empresa na preparação e confirmação
+- [x] Executar ações somente após confirmação e registrar status/executedAt em assistantActionConfirmations
+- [x] Integrar proposta estruturada do LLM e UI responsiva de revisão, confirmação e cancelamento
+- [x] Adicionar cobertura automatizada de prévia, autorização, expiração e execução
+- [x] Definir e aplicar matriz explícita de permissões por categoria de ação e papel, com testes correspondentes
+- [x] Adicionar testes tRPC para bloquear membros não proprietários em prepareAction e confirmAction
+- [x] Adicionar teste de ação destrutiva confirmada validando execução e auditoria
+
+
+## Fase 24 - Upgrade completo de UI/UX SaaS premium
+- [x] Mapear componentes e páginas atuais sem alterar lógica de negócio
+- [x] Aplicar design system global com azul royal, superfícies claras, tipografia legível e estados semânticos discretos
+- [x] Refinar sidebar responsiva, navegação mobile, cabeçalho e ações contextuais
+- [x] Redesenhar Dashboard com indicadores, ações rápidas e atividade recente usando dados reais
+- [ ] Refinar CRUDs de clientes, produtos, fornecedores, orçamentos, faturas e financeiro com busca, filtros e estados vazios
+- [x] Aprimorar editor, detalhes, preview, impressão e fluxo de orçamentos preservando procedures e integrações
+- [x] Validar responsividade desktop/mobile, acessibilidade, testes, TypeScript e build
+- [x] Definir e aplicar matriz explícita de permissões por categoria de ação e papel, com testes correspondentes
+- [x] Adicionar testes tRPC para bloquear membros não proprietários em prepareAction e confirmAction
+- [x] Adicionar teste de ação destrutiva confirmada validando execução e auditoria

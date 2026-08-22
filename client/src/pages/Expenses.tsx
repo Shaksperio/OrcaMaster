@@ -98,15 +98,16 @@ export default function Expenses() {
 
   return (
     <AppLayout>
-      <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8">
+      <div className="mx-auto w-full max-w-[1440px] space-y-7 px-4 py-7 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Gestão Financeira & Despesas</h1>
-            <p className="text-muted-foreground mt-1">Controle de contas a pagar, recebimentos e fluxo de caixa (Padrão Zoho Books)</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">Financeiro</p>
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground">Contas e despesas</h1>
+            <p className="mt-2 text-sm text-muted-foreground">Controle pagamentos, vencimentos e fluxo de caixa com clareza.</p>
           </div>
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-[#1B5E20] hover:bg-[#1B5E20]/90 text-white gap-2">
+              <Button className="gap-2 bg-primary text-primary-foreground shadow-sm hover:bg-primary/90">
                 <Plus className="w-4 h-4" /> Nova Despesa / Conta
               </Button>
             </DialogTrigger>
@@ -164,8 +165,8 @@ export default function Expenses() {
         </div>
 
         {/* Financial Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="border-0 shadow-sm bg-card">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <Card className="border-border/70 bg-card shadow-sm">
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Faturamento Recebido</CardTitle>
               <TrendingUp className="w-4 h-4 text-green-600" />
@@ -176,7 +177,7 @@ export default function Expenses() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-sm bg-card">
+          <Card className="border-border/70 bg-card shadow-sm">
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Despesas Pagas</CardTitle>
               <TrendingDown className="w-4 h-4 text-red-600" />
@@ -187,7 +188,7 @@ export default function Expenses() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-sm bg-card">
+          <Card className="border-border/70 bg-card shadow-sm">
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Lucro Líquido</CardTitle>
               <Wallet className="w-4 h-4 text-[#D8921B]" />
@@ -198,7 +199,7 @@ export default function Expenses() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-sm bg-card">
+          <Card className="border-border/70 bg-card shadow-sm">
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Contas Pendentes</CardTitle>
               <DollarSign className="w-4 h-4 text-yellow-600" />
@@ -213,7 +214,7 @@ export default function Expenses() {
         </div>
 
         {/* Expenses List */}
-        <Card className="border-0 shadow-sm">
+        <Card className="border-border/70 shadow-sm">
           <CardHeader>
             <CardTitle>Contas a Pagar & Despesas</CardTitle>
             <CardDescription>Lista completa de despesas registradas</CardDescription>

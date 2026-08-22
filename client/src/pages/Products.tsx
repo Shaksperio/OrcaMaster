@@ -161,16 +161,17 @@ export default function Products() {
 
   return (
     <AppLayout>
-      <div className="p-6 md:p-8 max-w-7xl mx-auto">
+      <div className="mx-auto w-full max-w-[1440px] space-y-6 px-4 py-7 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Produtos</h1>
-            <p className="text-muted-foreground mt-2">Gerencie todos os seus produtos e serviços</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">Catálogo</p>
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground">Produtos e serviços</h1>
+            <p className="mt-2 text-sm text-muted-foreground">Mantenha preços, estoque e referências externas organizados.</p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2">
+              <Button className="gap-2 bg-primary text-primary-foreground shadow-sm hover:bg-primary/90">
                 <Plus className="w-4 h-4" />
                 Novo Produto
               </Button>
@@ -364,10 +365,10 @@ export default function Products() {
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por nome ou SKU..."
+                  placeholder="Buscar produto ou SKU..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="h-11 border-border/70 bg-background pl-10 shadow-none focus-visible:ring-primary/30"
                 />
               </div>
             </div>
@@ -375,7 +376,7 @@ export default function Products() {
         </Card>
 
         {/* Products Table */}
-        <Card className="border-0 shadow-sm">
+        <Card className="border-border/70 shadow-sm">
           <CardHeader>
             <CardTitle>Lista de Produtos</CardTitle>
             <CardDescription>Total: {filteredProducts.length} produtos</CardDescription>

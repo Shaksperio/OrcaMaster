@@ -203,21 +203,22 @@ export default function CreateQuotation() {
 
   return (
     <AppLayout>
-      <div className="p-6 md:p-8 max-w-6xl mx-auto">
+      <div className="mx-auto w-full max-w-[1280px] space-y-6 px-4 py-7 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
+        <div className="flex items-start gap-3 sm:items-center sm:gap-4">
           <Button variant="ghost" size="sm" onClick={() => navigate("/quotations")} className="gap-2">
             <ArrowLeft className="w-4 h-4" />
             Voltar
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Novo Orçamento</h1>
-            <p className="text-muted-foreground mt-1">Preencha os dados para criar um orçamento profissional</p>
+            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-primary">Novo documento</p>
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground">Novo orçamento</h1>
+            <p className="mt-1 text-sm text-muted-foreground">Monte uma proposta profissional com campos claros e revisão rápida.</p>
           </div>
         </div>
 
-        <Tabs defaultValue="geral" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 h-12">
+        <Tabs defaultValue="geral" className="space-y-6 overflow-x-auto">
+          <TabsList className="grid h-12 w-full min-w-[620px] grid-cols-4">
             <TabsTrigger value="geral" className="gap-2 text-sm">
               <Building2 className="w-4 h-4" />
               Geral
@@ -238,7 +239,7 @@ export default function CreateQuotation() {
 
           {/* ===== ABA GERAL ===== */}
           <TabsContent value="geral" className="space-y-6">
-            <Card className="border-0 shadow-sm">
+            <Card className="border-border/70 shadow-sm">
               <CardHeader>
                 <CardTitle className="text-lg">Contratante e Local</CardTitle>
               </CardHeader>
@@ -288,7 +289,7 @@ export default function CreateQuotation() {
 
           {/* ===== ABA ITENS ===== */}
           <TabsContent value="itens" className="space-y-6">
-            <Card className="border-0 shadow-sm">
+            <Card className="border-border/70 shadow-sm">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-lg">Itens do Orçamento</CardTitle>
                 <Button variant="outline" size="sm" onClick={addItem} className="gap-2">
@@ -405,7 +406,7 @@ export default function CreateQuotation() {
                         </div>
                         <div>
                           <Label className="text-xs">Valor</Label>
-                          <div className="h-9 flex items-center px-3 bg-background border rounded-md text-sm font-semibold text-[#1B5E20]">
+                            <div className="flex h-9 items-center rounded-md border border-border/70 bg-background px-3 text-sm font-semibold text-primary">
                             {formatCurrency(itemTotals[index] || 0)}
                           </div>
                         </div>
@@ -415,7 +416,7 @@ export default function CreateQuotation() {
                 </div>
 
                 {/* Resumo de totais */}
-                <div className="mt-6 p-4 bg-[#1B5E20]/5 rounded-lg border border-[#1B5E20]/20">
+                <div className="mt-6 rounded-lg border border-primary/20 bg-primary/5 p-4">
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Subtotal</span>
@@ -454,7 +455,7 @@ export default function CreateQuotation() {
                     <Separator />
                     <div className="flex justify-between text-lg font-bold">
                       <span>VALOR TOTAL</span>
-                      <span className="text-[#1B5E20]">{formatCurrency(total)}</span>
+                      <span className="text-primary">{formatCurrency(total)}</span>
                     </div>
                   </div>
                 </div>
@@ -464,7 +465,7 @@ export default function CreateQuotation() {
 
           {/* ===== ABA PAGAMENTO ===== */}
           <TabsContent value="pagamento" className="space-y-6">
-            <Card className="border-0 shadow-sm">
+            <Card className="border-border/70 shadow-sm">
               <CardHeader>
                 <CardTitle className="text-lg">Condições de Pagamento</CardTitle>
               </CardHeader>
@@ -499,7 +500,7 @@ export default function CreateQuotation() {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-sm">
+            <Card className="border-border/70 shadow-sm">
               <CardHeader>
                 <CardTitle className="text-lg">Dados PIX para QR Code</CardTitle>
               </CardHeader>
@@ -536,7 +537,7 @@ export default function CreateQuotation() {
 
           {/* ===== ABA DETALHES ===== */}
           <TabsContent value="detalhes" className="space-y-6">
-            <Card className="border-0 shadow-sm">
+            <Card className="border-border/70 shadow-sm">
               <CardHeader>
                 <CardTitle className="text-lg">Descrição dos Serviços Contratados</CardTitle>
               </CardHeader>
@@ -554,7 +555,7 @@ export default function CreateQuotation() {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-sm">
+            <Card className="border-border/70 shadow-sm">
               <CardHeader>
                 <CardTitle className="text-lg">Prazo e Observações</CardTitle>
               </CardHeader>
@@ -593,14 +594,14 @@ export default function CreateQuotation() {
         </Tabs>
 
         {/* Actions - sempre visível */}
-        <div className="flex justify-end gap-4 mt-8 pb-8">
+        <div className="sticky bottom-0 z-10 -mx-4 flex justify-end gap-3 border-t border-border/70 bg-background/95 px-4 py-4 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:pt-2 sm:pb-8">
           <Button variant="outline" onClick={() => navigate("/quotations")}>
             Cancelar
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={createMutation.isPending}
-            className="bg-[#1B5E20] hover:bg-[#1B5E20]/90 text-white gap-2 px-8"
+            className="gap-2 bg-primary px-8 text-primary-foreground shadow-sm hover:bg-primary/90"
           >
             {createMutation.isPending ? (
               <>

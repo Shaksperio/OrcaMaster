@@ -84,16 +84,17 @@ export default function Customers() {
 
   return (
     <AppLayout>
-      <div className="p-6 md:p-8 max-w-7xl mx-auto">
+      <div className="mx-auto w-full max-w-[1440px] space-y-6 px-4 py-7 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Clientes</h1>
-            <p className="text-muted-foreground mt-2">Gerencie todos os seus clientes</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">Relacionamento</p>
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground">Clientes</h1>
+            <p className="mt-2 text-sm text-muted-foreground">Centralize contatos, documentos e histórico comercial.</p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-primary/90 gap-2 text-primary-foreground">
+              <Button className="gap-2 bg-primary text-primary-foreground shadow-sm hover:bg-primary/90">
                 <Plus className="w-4 h-4" />
                 Novo Cliente
               </Button>
@@ -212,22 +213,22 @@ export default function Customers() {
         </div>
 
         {/* Search */}
-        <div className="mb-6">
+        <div className="rounded-xl border border-border/70 bg-card p-3 shadow-sm sm:p-4">
           <div className="relative">
             <Search className="absolute left-3 top-3 w-5 h-5 text-muted-foreground" />
             <Input
               placeholder="Buscar cliente por nome ou CPF/CNPJ..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="h-11 border-border/70 bg-background pl-10 shadow-none focus-visible:ring-primary/30"
             />
           </div>
         </div>
 
         {/* Customers List */}
-        <Card className="border-0 shadow-sm">
-          <CardHeader>
-            <CardTitle>Lista de Clientes</CardTitle>
+        <Card className="border-border/70 shadow-sm">
+          <CardHeader className="border-b border-border/60 px-5 py-4">
+              <CardTitle className="text-base">Lista de Clientes</CardTitle>
             <CardDescription>
               Total: {filteredCustomers.length} cliente{filteredCustomers.length !== 1 ? "s" : ""}
             </CardDescription>
@@ -243,26 +244,22 @@ export default function Customers() {
                 <p className="text-muted-foreground">Nenhum cliente encontrado</p>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="divide-y divide-border/60">
                 {filteredCustomers.map((customer) => (
                   <div
                     key={customer.id}
-                    className="flex items-center justify-between p-4 bg-muted rounded-lg hover:bg-muted/80 transition-colors"
+                    className="flex items-center justify-between gap-4 rounded-lg px-2 py-4 transition-colors hover:bg-muted/40"
                   >
-                    <div>
-                      <p className="font-medium text-foreground">{customer.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {customer.document && `${customer.document} • `}
-                        {customer.email}
-                      </p>
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-semibold text-secondary-foreground">{customer.name.slice(0, 1).toUpperCase()}</div>
+                      <div className="min-w-0">
+                        <p className="truncate font-medium text-foreground">{customer.name}</p>
+                        <p className="truncate text-sm text-muted-foreground">{customer.document && `${customer.document} • `}{customer.email}</p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      {customer.phone && (
-                        <p className="text-sm text-foreground">{customer.phone}</p>
-                      )}
-                      {customer.city && (
-                        <p className="text-sm text-muted-foreground">{customer.city}, {customer.state}</p>
-                      )}
+                    <div className="shrink-0 text-right">
+                      {customer.phone && <p className="text-sm text-foreground">{customer.phone}</p>}
+                      {customer.city && <p className="text-sm text-muted-foreground">{customer.city}, {customer.state}</p>}
                     </div>
                   </div>
                 ))}

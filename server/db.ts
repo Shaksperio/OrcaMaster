@@ -1,6 +1,6 @@
 import { eq, and, desc, asc, sql, count, isNotNull, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, companies, clients, products, productPriceHistory, professionals, suppliers, quotations, quotationItems, invoices, invoiceItems, companyMembers, themes, expenses, documentVersions } from "../drizzle/schema";
+import { InsertUser, users, companies, clients, products, productPriceHistory, professionals, suppliers, quotations, quotationItems, invoices, invoiceItems, companyMembers, themes, expenses, documentVersions, assistantActionConfirmations } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -541,4 +541,38 @@ export async function createDocumentVersion(data: typeof documentVersions.$infer
   if (!db) throw new Error("Database not available");
   const result = await db.insert(documentVersions).values(data);
   return result[0];
+}
+
+// Assistant action confirmations and audit records
+export async function createAssistantActionConfirmation(data: typeof assistantActionConfirmations.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(assistantActionConfirmations).values(data);
+  return result[0];
+}
+
+export async function getAssistantActionConfirmationByToken(confirmationToken: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(assistantActionConfirmations)
+    .where(eq(assistantActionConfirmations.confirmationToken, confirmationToken)).limit(1);
+  return result[0];
+}
+
+export async function updateAssistantActionConfirmation(id: number, data: Partial<typeof assistantActionConfirmations.$inferInsert>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(assistantActionConfirmations).set(data).where(eq(assistantActionConfirmations.id, id));
+}
+
+export async function deleteProduct(productId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(products).where(eq(products.id, productId));
+}
+
+export async function deleteInvoice(invoiceId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(invoices).where(eq(invoices.id, invoiceId));
 }
