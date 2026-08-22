@@ -45,13 +45,13 @@
 - [x] Implementar contas a pagar
 - [x] Implementar fluxo de caixa
 - [x] Implementar gráficos de faturamento mensal
-- [ ] Implementar relatório de inadimplência
+- [x] Implementar relatório de inadimplência
 - [ ] Implementar exportação de relatórios (PDF e Excel)
 
 ## Fase 7: Dashboard e Página Pública
 - [x] Implementar dashboard com indicadores financeiros
 - [x] Implementar página pública de validação de documentos via QR Code
-- [ ] Implementar rastreamento de QR Code escaneado
+- [x] Implementar rastreamento de QR Code escaneado
 
 ## Fase 8: Alertas e Notificações
 - [ ] Implementar alertas por e-mail (orçamento aprovado, fatura vencida, pagamento recebido)
@@ -272,3 +272,22 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [x] Adicionar teste de ação destrutiva confirmada validando execução e auditoria
 - [x] Refinar e validar explicitamente QuotationPreview.tsx e o fluxo de impressão após o novo design system
 - [x] Adicionar validação específica de acessibilidade nas telas atualizadas, incluindo foco visível, labels/aria e navegação por teclado
+- [x] Adicionar testes/checagens explícitas de acessibilidade nas telas Dashboard, Customers, Quotations, Invoices, Products, Expenses, Suppliers, Professionals e QuotationPreview
+- [x] Executar e registrar validação específica do fluxo de teclado nas ações principais e componentes interativos refinados
+
+
+## Fase 25 - Continuação do roadmap confirmado pelo usuário
+- [ ] Fechar exportação de relatórios em formatos suportados pelo ambiente e validar impressão
+- [x] Implementar rastreamento de validações via QR Code com consentimento e isolamento por empresa
+- [ ] Implementar alertas transacionais por e-mail e notificações push somente com configuração explícita
+- [ ] Implementar recuperação de acesso e cadastro de empresa compatíveis com a autenticação atual
+- [ ] Adicionar sugestões de preços baseadas exclusivamente no histórico real
+- [ ] Adicionar análise de padrões de orçamentos baseada exclusivamente nos dados reais
+
+
+## Fase 26 - Assistente global no aplicativo
+- [x] Adicionar retorno explícito ao Dashboard na tela dedicada do Assistente
+- [x] Integrar botão flutuante do Assistente no AppLayout em todas as abas autenticadas
+- [x] Abrir e fechar painel de chat global com responsividade e acessibilidade
+- [x] Preservar histórico da conversa e confirmação explícita das ações no chat global
+- [x] Validar navegação, teclado, testes, TypeScript e build

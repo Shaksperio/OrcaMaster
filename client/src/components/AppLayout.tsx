@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { AssistantFloatingChat } from "@/components/AssistantFloatingChat";
 import { useState } from "react";
 import {
   BarChart3,
@@ -177,6 +178,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           <div className="flex items-center gap-2 text-xs text-muted-foreground"><BarChart3 className="h-4 w-4" /><span className="hidden sm:inline">Visão geral da operação</span></div>
         </header>
         <main className="min-h-0 flex-1">{children}</main>
+        {location !== "/assistant" && <AssistantFloatingChat />}
       </div>
     </div>
   );

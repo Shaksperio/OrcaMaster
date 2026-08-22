@@ -1,152 +1,22 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, AlertCircle } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CheckCircle, AlertCircle, Loader2, ShieldCheck } from "lucide-react";
 import { useParams } from "wouter";
+import { trpc } from "@/lib/trpc";
+
+const statusLabels: Record<string, string> = { rascunho: "Rascunho", enviado: "Enviado", aprovado: "Aprovado", rejeitado: "Rejeitado", vencido: "Vencido", convertido: "Convertido", pago: "Pago", parcialmente_pago: "Parcialmente pago", cancelado: "Cancelado" };
+const statusColors: Record<string, string> = { aprovado: "bg-emerald-100 text-emerald-700", pago: "bg-emerald-100 text-emerald-700", rejeitado: "bg-red-100 text-red-700", vencido: "bg-amber-100 text-amber-700", cancelado: "bg-red-100 text-red-700", rascunho: "bg-slate-100 text-slate-700", enviado: "bg-blue-100 text-blue-700", convertido: "bg-violet-100 text-violet-700", parcialmente_pago: "bg-amber-100 text-amber-700" };
+const money = (value: string | number | null | undefined) => Number(value || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export default function PublicValidation() {
   const { number } = useParams<{ number: string }>();
+  const validation = trpc.publicDocuments.validate.useQuery({ number: number || "" }, { enabled: Boolean(number) });
+  const document = validation.data;
+  const documentType = document?.documentType === "invoice" ? "Fatura" : "Orçamento";
 
-  // For public validation, we'll show a generic success message
-  // In a real implementation, this would query a public API endpoint
-  // that doesn't require authentication
-  const isLoading = false;
-  const document = number ? {
-    number: number,
-    status: "aprovado",
-    total: 1500.00,
-    createdAt: new Date(),
-  } : null;
-
-  const documentType = number?.startsWith("ORC") ? "Orçamento" : "Fatura";
-
-  const statusColors: Record<string, string> = {
-    rascunho: "bg-slate-100 text-slate-700",
-    enviado: "bg-blue-100 text-blue-700",
-    aprovado: "bg-green-100 text-green-700",
-    rejeitado: "bg-red-100 text-red-700",
-    vencido: "bg-orange-100 text-orange-700",
-    convertido: "bg-purple-100 text-purple-700",
-    pago: "bg-green-100 text-green-700",
-    parcialmente_pago: "bg-yellow-100 text-yellow-700",
-    cancelado: "bg-red-100 text-red-700",
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-bold text-2xl">OM</span>
-          </div>
-          <h1 className="text-2xl font-bold text-foreground">OrçaMaster</h1>
-          <p className="text-muted-foreground mt-1">Validação de Documentos</p>
-        </div>
-
-        {/* Content */}
-        {document ? (
-          <Card className="border-0 shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-slate-50">
-              <div className="flex items-center gap-3">
-                <CheckCircle className="w-6 h-6 text-green-600" />
-                <div>
-                  <CardTitle>Documento Válido</CardTitle>
-                  <CardDescription>Este documento foi gerado legitimamente</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-6 space-y-4">
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <p className="text-sm font-medium text-green-900">✓ Autenticidade Confirmada</p>
-                <p className="text-xs text-green-700 mt-1">
-                  Este documento foi gerado pelo sistema OrçaMaster e é autêntico.
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <div>
-                  <p className="text-xs font-medium text-slate-500 uppercase">Tipo de Documento</p>
-                  <p className="text-sm font-semibold text-foreground mt-1">{documentType}</p>
-                </div>
-
-                <div>
-                  <p className="text-xs font-medium text-slate-500 uppercase">Número</p>
-                  <p className="text-sm font-semibold text-foreground mt-1">{document.number}</p>
-                </div>
-
-                <div>
-                  <p className="text-xs font-medium text-slate-500 uppercase">Status</p>
-                  <Badge className={statusColors[document.status] || "bg-slate-100 text-slate-700"}>
-                    {document.status}
-                  </Badge>
-                </div>
-
-                <div>
-                  <p className="text-xs font-medium text-slate-500 uppercase">Data de Emissão</p>
-                  <p className="text-sm font-semibold text-foreground mt-1">
-                    {new Date(document.createdAt).toLocaleDateString("pt-BR")}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-xs font-medium text-slate-500 uppercase">Valor Total</p>
-                  <p className="text-lg font-bold text-blue-600 mt-1">
-                    R$ {document.total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                  </p>
-                </div>
-              </div>
-
-              <div className="border-t border-border pt-4 mt-4">
-                <p className="text-xs text-slate-500 text-center">
-                  Validado em: {new Date().toLocaleString("pt-BR")}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card className="border-0 shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-orange-50 to-red-50">
-              <div className="flex items-center gap-3">
-                <AlertCircle className="w-6 h-6 text-orange-600" />
-                <div>
-                  <CardTitle>Documento Não Encontrado</CardTitle>
-                  <CardDescription>Não foi possível validar este documento</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-6 space-y-4">
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                <p className="text-sm font-medium text-orange-900">⚠ Validação Falhou</p>
-                <p className="text-xs text-orange-700 mt-1">
-                  O documento com o número "{number}" não foi encontrado em nosso sistema.
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Possíveis causas:</p>
-                <ul className="text-xs text-muted-foreground space-y-1 ml-4 list-disc">
-                  <li>O número do documento está incorreto</li>
-                  <li>O QR Code foi danificado ou alterado</li>
-                  <li>O documento foi removido do sistema</li>
-                </ul>
-              </div>
-
-              <div className="border-t border-border pt-4 mt-4">
-                <p className="text-xs text-slate-500 text-center">
-                  Entre em contato com a empresa emissora para verificar a autenticidade.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Footer */}
-        <div className="text-center mt-8">
-          <p className="text-xs text-slate-500">
-            Sistema de Validação OrçaMaster © 2026
-          </p>
-        </div>
-      </div>
-    </div>
-  );
+  return <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 px-4 py-10"><div className="w-full max-w-md">
+    <header className="mb-8 text-center"><div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-lg font-bold text-primary-foreground shadow-sm">OM</div><h1 className="text-2xl font-semibold tracking-tight">OrçaMaster</h1><p className="mt-1 text-sm text-muted-foreground">Validação pública de documentos</p></header>
+    {validation.isLoading ? <Card><CardContent className="flex min-h-48 items-center justify-center" role="status" aria-label="Validando documento"><Loader2 className="h-7 w-7 animate-spin text-primary" /></CardContent></Card> : document ? <Card className="border-emerald-200 shadow-lg shadow-emerald-100/40"><CardHeader className="border-b border-emerald-100 bg-emerald-50/60"><div className="flex items-center gap-3"><CheckCircle className="h-6 w-6 text-emerald-600"/><div><CardTitle>Documento localizado</CardTitle><CardDescription>A validação foi registrada com sucesso.</CardDescription></div></div></CardHeader><CardContent className="space-y-5 p-6"><div className="flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4"><ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600"/><p className="text-sm text-emerald-800">Este registro corresponde a um documento emitido no OrçaMaster.</p></div><dl className="space-y-4"><div><dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Empresa emissora</dt><dd className="mt-1 font-semibold">{document.companyName || "Não informado"}</dd></div><div className="grid grid-cols-2 gap-4"><div><dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Tipo</dt><dd className="mt-1 font-medium">{documentType}</dd></div><div><dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Número</dt><dd className="mt-1 font-medium">{document.number}</dd></div></div><div><dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Status</dt><dd className="mt-1"><Badge className={statusColors[document.status] || "bg-slate-100 text-slate-700"}>{statusLabels[document.status] || document.status}</Badge></dd></div><div className="grid grid-cols-2 gap-4"><div><dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Emissão</dt><dd className="mt-1 text-sm">{new Date(document.createdAt).toLocaleDateString("pt-BR")}</dd></div><div><dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Total</dt><dd className="mt-1 font-semibold text-primary">{money(document.total)}</dd></div></div></dl></CardContent></Card> : <Card className="border-amber-200 shadow-lg shadow-amber-100/30"><CardHeader className="border-b border-amber-100 bg-amber-50/60"><div className="flex items-center gap-3"><AlertCircle className="h-6 w-6 text-amber-600"/><div><CardTitle>Documento não encontrado</CardTitle><CardDescription>Não foi possível validar este número.</CardDescription></div></div></CardHeader><CardContent className="space-y-4 p-6"><p className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">O documento <strong>{number || "informado"}</strong> não foi localizado na base oficial.</p><p className="text-sm text-muted-foreground">Confira o número do QR Code ou entre em contato com a empresa emissora.</p></CardContent></Card>}
+    <p className="mt-8 text-center text-xs text-muted-foreground">Validação pública de documentos · OrçaMaster</p>
+  </div></main>;
 }

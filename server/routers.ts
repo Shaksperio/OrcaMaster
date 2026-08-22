@@ -102,6 +102,17 @@ export const appRouter = router({
       }),
   }),
 
+  publicDocuments: router({
+    validate: publicProcedure.input(z.object({ number: z.string().trim().min(1).max(80) })).query(async ({ input, ctx }) => {
+      const document = await db.getPublicDocumentByNumber(input.number);
+      if (!document) return null;
+      const forwarded = ctx.req.headers["x-forwarded-for"];
+      const ipAddress = typeof forwarded === "string" ? forwarded.split(",")[0].trim().slice(0, 45) : (ctx.req.ip || null);
+      await db.createQRCodeValidation({ documentType: document.documentType, documentId: document.id, ipAddress, userAgent: ctx.req.headers["user-agent"] || null });
+      return { documentType: document.documentType, number: document.number, status: document.status, total: document.total, createdAt: document.createdAt, companyName: document.companyName };
+    }),
+  }),
+
   system: systemRouter,
   
   auth: router({

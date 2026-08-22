@@ -1,6 +1,6 @@
 import { eq, and, desc, asc, sql, count, isNotNull, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, companies, clients, products, productPriceHistory, professionals, suppliers, quotations, quotationItems, invoices, invoiceItems, companyMembers, themes, expenses, documentVersions, assistantActionConfirmations } from "../drizzle/schema";
+import { InsertUser, users, companies, clients, products, productPriceHistory, professionals, suppliers, quotations, quotationItems, invoices, invoiceItems, companyMembers, themes, expenses, documentVersions, assistantActionConfirmations, qrCodeValidations } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -575,4 +575,33 @@ export async function deleteInvoice(invoiceId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db.delete(invoices).where(eq(invoices.id, invoiceId));
+}
+
+
+export async function getPublicDocumentByNumber(number: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const quotation = await db.select({ id: quotations.id, number: quotations.number, status: quotations.status, total: quotations.total, createdAt: quotations.createdAt, companyId: quotations.companyId }).from(quotations).where(eq(quotations.number, number)).limit(1);
+  if (quotation[0]) {
+    const company = await db.select({ name: companies.name }).from(companies).where(eq(companies.id, quotation[0].companyId)).limit(1);
+    return { ...quotation[0], documentType: "quotation" as const, companyName: company[0]?.name ?? null };
+  }
+  const invoice = await db.select({ id: invoices.id, number: invoices.number, status: invoices.status, total: invoices.total, createdAt: invoices.createdAt, companyId: invoices.companyId }).from(invoices).where(eq(invoices.number, number)).limit(1);
+  if (!invoice[0]) return undefined;
+  const company = await db.select({ name: companies.name }).from(companies).where(eq(companies.id, invoice[0].companyId)).limit(1);
+  return { ...invoice[0], documentType: "invoice" as const, companyName: company[0]?.name ?? null };
+}
+
+export async function createQRCodeValidation(data: typeof qrCodeValidations.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(qrCodeValidations).values(data);
+  return { id: result[0].insertId };
+}
+
+export async function countQRCodeValidations(documentType: "quotation" | "invoice", documentId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+  const result = await db.select({ total: count() }).from(qrCodeValidations).where(and(eq(qrCodeValidations.documentType, documentType), eq(qrCodeValidations.documentId, documentId)));
+  return Number(result[0]?.total ?? 0);
 }
