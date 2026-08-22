@@ -1,6 +1,6 @@
 import { eq, and, desc, asc, sql, count, isNotNull, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, companies, clients, products, productPriceHistory, professionals, suppliers, quotations, quotationItems, invoices, invoiceItems, companyMembers, themes, expenses } from "../drizzle/schema";
+import { InsertUser, users, companies, clients, products, productPriceHistory, professionals, suppliers, quotations, quotationItems, invoices, invoiceItems, companyMembers, themes, expenses, documentVersions } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -520,4 +520,25 @@ export async function deleteExpense(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db.delete(expenses).where(eq(expenses.id, id));
+}
+
+// Document version history
+export async function getDocumentVersions(documentType: "quotation" | "invoice", documentId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(documentVersions)
+    .where(and(eq(documentVersions.documentType, documentType), eq(documentVersions.documentId, documentId)))
+    .orderBy(desc(documentVersions.versionNumber));
+}
+
+export async function getNextDocumentVersionNumber(documentType: "quotation" | "invoice", documentId: number) {
+  const versions = await getDocumentVersions(documentType, documentId);
+  return (versions[0]?.versionNumber ?? 0) + 1;
+}
+
+export async function createDocumentVersion(data: typeof documentVersions.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(documentVersions).values(data);
+  return result[0];
 }

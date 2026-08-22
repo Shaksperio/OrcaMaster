@@ -1,14 +1,17 @@
+import React from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, FileText, Eye, Download } from "lucide-react";
+import { Plus, Search, FileText, Eye, Download, Copy, History, Loader2 } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ReadOnlyVersionSnapshot } from "@/components/ReadOnlyVersionSnapshot";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { Loader2 } from "lucide-react";
 import { useCompany } from "@/contexts/CompanyContext";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 const statusColors: Record<string, string> = {
   rascunho: "bg-muted text-muted-foreground",
@@ -22,8 +25,24 @@ const statusColors: Record<string, string> = {
 
 export default function Invoices() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedVersionInvoiceId, setSelectedVersionInvoiceId] = useState<number | null>(null);
   const [, navigate] = useLocation();
   const { activeCompany } = useCompany();
+
+  const utils = trpc.useUtils();
+
+  const duplicateMutation = trpc.invoices.duplicate.useMutation({
+    onSuccess: (data) => {
+      utils.invoices.list.invalidate({ companyId: activeCompany?.id });
+      toast.success(`Fatura duplicada como ${data.number}.`);
+    },
+    onError: (error) => toast.error("Erro ao duplicar fatura: " + error.message),
+  });
+
+  const { data: selectedVersions = [], isLoading: isLoadingVersions } = trpc.invoices.versions.useQuery(
+    { id: selectedVersionInvoiceId ?? 0 },
+    { enabled: selectedVersionInvoiceId !== null }
+  );
 
   const { data: invoices, isLoading } = trpc.invoices.list.useQuery(
     { companyId: activeCompany?.id || 0 },
@@ -116,6 +135,12 @@ export default function Invoices() {
                           <Button variant="ghost" size="sm" disabled>
                             <Download className="w-4 h-4" />
                           </Button>
+                          <Button variant="ghost" size="sm" onClick={() => duplicateMutation.mutate({ id: invoice.id })} title="Duplicar fatura">
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => setSelectedVersionInvoiceId(invoice.id)} title="Ver histórico" aria-label={`Ver histórico da fatura ${invoice.number}`}>
+                            <History className="w-4 h-4" />
+                          </Button>
                         </td>
                       </tr>
                     ))}
@@ -125,6 +150,16 @@ export default function Invoices() {
             )}
           </CardContent>
         </Card>
+
+        <Dialog open={selectedVersionInvoiceId !== null} onOpenChange={(open) => !open && setSelectedVersionInvoiceId(null)}>
+          <DialogContent className="max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Histórico de versões da fatura</DialogTitle>
+              <DialogDescription>Snapshots registrados para esta fatura. Os dados são somente leitura.</DialogDescription>
+            </DialogHeader>
+            {isLoadingVersions ? <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin" /></div> : selectedVersions.length === 0 ? <p className="py-6 text-sm text-muted-foreground">Nenhuma versão registrada.</p> : <div className="space-y-3">{selectedVersions.map((version: any) => <div key={version.id} className="rounded-lg border p-3"><div className="flex items-center justify-between gap-3"><span className="font-medium">Versão {version.versionNumber}</span><span className="text-xs text-muted-foreground">{new Date(version.createdAt).toLocaleString("pt-BR")}</span></div><p className="mt-1 text-sm text-muted-foreground">{version.changeReason || "Alteração registrada"}</p><ReadOnlyVersionSnapshot data={version.data} /></div>)}</div>}
+          </DialogContent>
+        </Dialog>
       </div>
     </AppLayout>
   );

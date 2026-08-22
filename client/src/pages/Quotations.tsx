@@ -1,9 +1,12 @@
+import React from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Plus, Search, FileText, Eye, Download, MoreHorizontal, Send, CheckCircle, XCircle, RefreshCw, Loader2, Mail, MessageCircle } from "lucide-react";
+import { Plus, Search, FileText, Eye, Download, MoreHorizontal, Send, CheckCircle, XCircle, RefreshCw, Loader2, Mail, MessageCircle, Copy, History } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ReadOnlyVersionSnapshot } from "@/components/ReadOnlyVersionSnapshot";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
@@ -33,6 +36,7 @@ const statusLabels: Record<string, string> = {
 
 export default function Quotations() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedVersionQuotationId, setSelectedVersionQuotationId] = useState<number | null>(null);
   const [, navigate] = useLocation();
   const { activeCompany } = useCompany();
   const utils = trpc.useUtils();
@@ -66,6 +70,19 @@ export default function Quotations() {
       toast.error("Erro ao excluir orçamento: " + error.message);
     },
   });
+
+  const duplicateMutation = trpc.quotations.duplicate.useMutation({
+    onSuccess: (data) => {
+      utils.quotations.list.invalidate({ companyId: activeCompany?.id });
+      toast.success(`Orçamento duplicado como ${data.number}.`);
+    },
+    onError: (error) => toast.error("Erro ao duplicar orçamento: " + error.message),
+  });
+
+  const { data: selectedVersions = [], isLoading: isLoadingVersions } = trpc.quotations.versions.useQuery(
+    { id: selectedVersionQuotationId ?? 0 },
+    { enabled: selectedVersionQuotationId !== null }
+  );
 
   const convertMutation = trpc.quotations.convertToInvoice.useMutation({
     onSuccess: (data) => {
@@ -224,7 +241,7 @@ export default function Quotations() {
                             </Button>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" aria-label={`Ações do orçamento ${quotation.number}`}>
                                   <MoreHorizontal className="w-4 h-4" />
                                 </Button>
                               </DropdownMenuTrigger>
@@ -240,6 +257,14 @@ export default function Quotations() {
                                 <DropdownMenuItem onClick={() => window.open(buildQuotationPdfUrl(quotation.id), "_blank", "noopener,noreferrer")}>
                                   <Download className="w-4 h-4 mr-2" />
                                   Gerar PDF
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => duplicateMutation.mutate({ id: quotation.id })}>
+                                  <Copy className="w-4 h-4 mr-2" />
+                                  Duplicar orçamento
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setSelectedVersionQuotationId(quotation.id)}>
+                                  <History className="w-4 h-4 mr-2" />
+                                  Ver histórico
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 {quotation.status === "rascunho" && (
@@ -299,6 +324,16 @@ export default function Quotations() {
             )}
           </CardContent>
         </Card>
+
+        <Dialog open={selectedVersionQuotationId !== null} onOpenChange={(open) => !open && setSelectedVersionQuotationId(null)}>
+          <DialogContent className="max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Histórico de versões</DialogTitle>
+              <DialogDescription>Snapshots registrados para este orçamento. Os dados são somente leitura.</DialogDescription>
+            </DialogHeader>
+            {isLoadingVersions ? <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin" /></div> : selectedVersions.length === 0 ? <p className="py-6 text-sm text-muted-foreground">Nenhuma versão registrada.</p> : <div className="space-y-3">{selectedVersions.map((version: any) => <div key={version.id} className="rounded-lg border p-3"><div className="flex items-center justify-between gap-3"><span className="font-medium">Versão {version.versionNumber}</span><span className="text-xs text-muted-foreground">{new Date(version.createdAt).toLocaleString("pt-BR")}</span></div><p className="mt-1 text-sm text-muted-foreground">{version.changeReason || "Alteração registrada"}</p><ReadOnlyVersionSnapshot data={version.data} /></div>)}</div>}
+          </DialogContent>
+        </Dialog>
       </div>
     </AppLayout>
   );

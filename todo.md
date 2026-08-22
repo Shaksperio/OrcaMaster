@@ -26,8 +26,8 @@
 - [x] Implementar controle de status (Rascunho, Enviado, Aprovado, Pago, etc.) - PRIORIDADE ALTA
 - [x] Implementar conversão automática de orçamento em fatura - PRIORIDADE MÉDIA
 - [x] Implementar validade de orçamento com alertas - PRIORIDADE MÉDIA
-- [ ] Implementar duplicação de documentos - PRIORIDADE BAIXA
-- [ ] Implementar histórico de versões - PRIORIDADE BAIXA
+- [x] Implementar duplicação de documentos - PRIORIDADE BAIXA (orçamentos e faturas)
+- [x] Implementar histórico de versões - PRIORIDADE BAIXA (snapshots protegidos e consulta somente leitura)
 
 ## Fase 5: Geração de PDF e QR Code
 - [x] Instalar biblioteca de PDF (pdfkit) e QR Code
@@ -218,3 +218,23 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [x] Criar testes das procedures suppliers para autorização por empresa e operações CRUD
 - [x] Criar teste explícito do espelho Firebase para criação, atualização e remoção de fornecedor
 - [x] Executar regressão completa, TypeScript e build após o CRUD de fornecedores
+
+### Reforço de documentos duplicados e versões
+- [x] Sincronizar no Firebase os documentos criados por quotations.duplicate e invoices.duplicate
+- [x] Exibir o conteúdo dos snapshots de documentVersions em modo somente leitura
+- [x] Adicionar testes de duplicação com sync Firebase e conteúdo visual/read-only das versões
+
+### Validação final de documentos duplicados
+- [x] Normalizar itens duplicados antes de sincronizar no Firebase, removendo IDs antigos e corrigindo o identificador pai
+- [x] Ajustar testes para validar o payload normalizado do espelho Firebase
+- [x] Adicionar testes de UI para renderização read-only do snapshot em orçamentos e faturas
+
+### Integração UI do histórico
+- [x] Adicionar teste de UI/integração para Quotations.tsx validando abertura e snapshot read-only
+- [x] Adicionar teste de UI/integração para Invoices.tsx validando abertura e snapshot read-only
+- [x] Reexecutar regressão completa, TypeScript e build após os testes de integração
+
+### Testes reais de UI do histórico
+- [x] Criar teste de integração real para Quotations.tsx renderizando, acionando histórico e validando snapshot read-only
+- [x] Criar teste de integração real para Invoices.tsx renderizando, acionando histórico e validando snapshot read-only
+- [x] Reexecutar pnpm test --run, pnpm check e pnpm build após substituir testes estáticos por testes reais de UI

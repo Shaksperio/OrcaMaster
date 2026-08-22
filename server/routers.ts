@@ -33,6 +33,26 @@ function checkRolePermission(role: string | undefined, isOwner: boolean, require
   return requiredRoles.includes(role);
 }
 
+async function saveDocumentVersion(documentType: "quotation" | "invoice", documentId: number, changedBy: number, changeReason: string) {
+  const document = documentType === "quotation"
+    ? await db.getQuotationById(documentId)
+    : await db.getInvoiceById(documentId);
+  if (!document) throw new TRPCError({ code: "NOT_FOUND" });
+  const items = documentType === "quotation"
+    ? await db.getQuotationItems(documentId)
+    : await db.getInvoiceItems(documentId);
+  const versionNumber = await db.getNextDocumentVersionNumber(documentType, documentId);
+  const snapshot = JSON.parse(JSON.stringify({ ...document, items }));
+  await db.createDocumentVersion({
+    documentType,
+    documentId,
+    versionNumber,
+    data: snapshot,
+    changedBy,
+    changeReason,
+  });
+}
+
 export const appRouter = router({
   ai: router({
     assistant: protectedProcedure
@@ -521,6 +541,62 @@ export const appRouter = router({
         return { ...quotation, items, client, company };
       }),
 
+    versions: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input, ctx }) => {
+        const quotation = await db.getQuotationById(input.id);
+        if (!quotation) throw new TRPCError({ code: "NOT_FOUND" });
+        await checkCompanyAccess(ctx.user.id, quotation.companyId);
+        return db.getDocumentVersions("quotation", input.id);
+      }),
+
+    duplicate: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        const quotation = await db.getQuotationById(input.id);
+        if (!quotation) throw new TRPCError({ code: "NOT_FOUND" });
+        const { isOwner, member } = await checkCompanyAccess(ctx.user.id, quotation.companyId);
+        if (!checkRolePermission(member?.role, isOwner, ["admin", "gerente"])) throw new TRPCError({ code: "FORBIDDEN" });
+        const items = await db.getQuotationItems(input.id);
+        const duplicatedItems = items.map(({ id: _itemId, quotationId: _quotationId, createdAt: _createdAt, ...item }) => item);
+        const number = await db.getNextQuotationNumber(quotation.companyId);
+        const { id } = await db.createQuotation({
+          companyId: quotation.companyId,
+          clientId: quotation.clientId,
+          number,
+          status: "rascunho",
+          description: quotation.description,
+          notes: quotation.notes,
+          subtotal: quotation.subtotal,
+          discount: quotation.discount,
+          discountPercentage: quotation.discountPercentage,
+          tax: quotation.tax,
+          total: quotation.total,
+          validUntil: quotation.validUntil,
+          paymentTerms: quotation.paymentTerms,
+          workLocation: quotation.workLocation,
+          issPercentage: quotation.issPercentage,
+          icmsPercentage: quotation.icmsPercentage,
+          pixHolder: quotation.pixHolder,
+          pixBank: quotation.pixBank,
+          pixKey: quotation.pixKey,
+          paymentConditions: quotation.paymentConditions,
+          paymentMethodDescription: quotation.paymentMethodDescription,
+          serviceDescription: quotation.serviceDescription,
+          deliveryEstimate: quotation.deliveryEstimate,
+          legalNotice: quotation.legalNotice,
+          themeId: quotation.themeId,
+        });
+        const quotationItemsForDuplicate = duplicatedItems.map((item) => ({ ...item, quotationId: id }));
+        await db.createQuotationItems(quotationItemsForDuplicate);
+        const duplicatedQuotation = await db.getQuotationById(id);
+        if (duplicatedQuotation) {
+          syncToFirebase("quotation", id, { ...duplicatedQuotation, items: quotationItemsForDuplicate }, { companyId: quotation.companyId });
+        }
+        await saveDocumentVersion("quotation", id, ctx.user.id, `Duplicado de ${quotation.number}`);
+        return { id, number };
+      }),
+
     create: protectedProcedure
       .input(z.object({
         companyId: z.number(),
@@ -629,6 +705,7 @@ export const appRouter = router({
         const createdQuotation = await db.getQuotationById(id);
         if (createdQuotation) {
           syncToFirebase("quotation", id, { ...createdQuotation, items: processedItems }, { companyId: input.companyId });
+          await saveDocumentVersion("quotation", id, ctx.user.id, "Criação do orçamento");
         }
         return { id, number };
       }),
@@ -648,6 +725,7 @@ export const appRouter = router({
         await db.updateQuotationStatus(input.id, input.status);
         // Sync status update to Firebase
         syncToFirebase("quotation", input.id, { ...quotation, status: input.status }, { companyId: quotation.companyId });
+        await saveDocumentVersion("quotation", input.id, ctx.user.id, `Alteração de status para ${input.status}`);
         return { success: true };
       }),
 
@@ -753,6 +831,7 @@ export const appRouter = router({
         const updated = await db.getQuotationById(input.id);
         if (updated) {
           syncToFirebase("quotation", input.id, { ...updated, items: processedItems }, { companyId: quotation.companyId });
+          await saveDocumentVersion("quotation", input.id, ctx.user.id, "Edição do orçamento");
         }
         return { success: true };
       }),
@@ -879,6 +958,52 @@ export const appRouter = router({
         return { ...invoice, items };
       }),
 
+    versions: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input, ctx }) => {
+        const invoice = await db.getInvoiceById(input.id);
+        if (!invoice) throw new TRPCError({ code: "NOT_FOUND" });
+        await checkCompanyAccess(ctx.user.id, invoice.companyId);
+        return db.getDocumentVersions("invoice", input.id);
+      }),
+
+    duplicate: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        const invoice = await db.getInvoiceById(input.id);
+        if (!invoice) throw new TRPCError({ code: "NOT_FOUND" });
+        const { isOwner, member } = await checkCompanyAccess(ctx.user.id, invoice.companyId);
+        if (!checkRolePermission(member?.role, isOwner, ["admin", "gerente"])) throw new TRPCError({ code: "FORBIDDEN" });
+        const items = await db.getInvoiceItems(input.id);
+        const duplicatedItems = items.map(({ id: _itemId, invoiceId: _invoiceId, createdAt: _createdAt, ...item }) => item);
+        const number = await db.getNextInvoiceNumber(invoice.companyId);
+        const { id } = await db.createInvoice({
+          companyId: invoice.companyId,
+          clientId: invoice.clientId,
+          quotationId: invoice.quotationId,
+          number,
+          status: "rascunho",
+          description: invoice.description,
+          notes: invoice.notes,
+          subtotal: invoice.subtotal,
+          discount: invoice.discount,
+          discountPercentage: invoice.discountPercentage,
+          tax: invoice.tax,
+          total: invoice.total,
+          dueDate: invoice.dueDate,
+          paymentTerms: invoice.paymentTerms,
+          themeId: invoice.themeId,
+        });
+        const invoiceItemsForDuplicate = duplicatedItems.map((item) => ({ ...item, invoiceId: id }));
+        await db.createInvoiceItems(invoiceItemsForDuplicate);
+        const duplicatedInvoice = await db.getInvoiceById(id);
+        if (duplicatedInvoice) {
+          syncToFirebase("invoice", id, { ...duplicatedInvoice, items: invoiceItemsForDuplicate }, { companyId: invoice.companyId });
+        }
+        await saveDocumentVersion("invoice", id, ctx.user.id, `Duplicada de ${invoice.number}`);
+        return { id, number };
+      }),
+
     create: protectedProcedure
       .input(z.object({
         companyId: z.number(),
@@ -956,6 +1081,7 @@ export const appRouter = router({
         const createdInvoice = await db.getInvoiceById(id);
         if (createdInvoice) {
           syncToFirebase("invoice", id, { ...createdInvoice, items: processedItems }, { companyId: input.companyId });
+          await saveDocumentVersion("invoice", id, ctx.user.id, "Criação da fatura");
         }
         return { id, number };
       }),
@@ -975,6 +1101,7 @@ export const appRouter = router({
         await db.updateInvoiceStatus(input.id, input.status);
         // Sync status update to Firebase
         syncToFirebase("invoice", input.id, { ...invoice, status: input.status }, { companyId: invoice.companyId });
+        await saveDocumentVersion("invoice", input.id, ctx.user.id, `Alteração de status para ${input.status}`);
         return { success: true };
       }),
   }),
