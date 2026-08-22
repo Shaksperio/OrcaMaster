@@ -34,6 +34,16 @@ describe("Contrato de acessibilidade das telas renovadas", () => {
     expect(layout).toContain("<AssistantFloatingChat />");
   });
 
+  it("mantém ações compactas e contidas na listagem de orçamentos", () => {
+    const quotations = readPage("Quotations.tsx");
+    expect(quotations).toContain("md:hidden");
+    expect(quotations).toContain('aria-expanded={isExpanded}');
+    expect(quotations).toContain("Mais ações do orçamento");
+    expect(quotations).toContain("hidden overflow-x-auto md:block");
+    expect(quotations).toContain("Editar");
+    expect(quotations).toContain("PDF");
+  });
+
   it("mantém nomes acessíveis nos alvos de impressão e ações do preview", () => {
     const preview = readPage("QuotationPreview.tsx");
     expect(preview).toContain('data-testid="quotation-print-target"');

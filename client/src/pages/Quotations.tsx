@@ -37,6 +37,7 @@ const statusLabels: Record<string, string> = {
 export default function Quotations() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedVersionQuotationId, setSelectedVersionQuotationId] = useState<number | null>(null);
+  const [expandedQuotationId, setExpandedQuotationId] = useState<number | null>(null);
   const [, navigate] = useLocation();
   const { activeCompany } = useCompany();
   const utils = trpc.useUtils();
@@ -178,7 +179,8 @@ export default function Quotations() {
                 </Button>
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <>
+              <div className="hidden overflow-x-auto md:block">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-border">
@@ -322,6 +324,45 @@ export default function Quotations() {
                   </tbody>
                 </table>
               </div>
+              <div className="space-y-3 md:hidden">
+                {filteredQuotations.map((quotation: any) => {
+                  const isExpanded = expandedQuotationId === quotation.id;
+                  return (
+                    <article key={quotation.id} className="overflow-hidden rounded-xl border border-border/70 bg-background shadow-sm">
+                      <button type="button" aria-expanded={isExpanded} onClick={() => setExpandedQuotationId(isExpanded ? null : quotation.id)} className="flex w-full min-w-0 items-center justify-between gap-3 p-4 text-left hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset">
+                        <span className="min-w-0 flex-1">
+                          <span className="flex items-center gap-2"><span className="font-semibold text-foreground">{quotation.number}</span><Badge className={statusColors[quotation.status] || "bg-slate-100 text-slate-700"}>{statusLabels[quotation.status] || quotation.status}</Badge></span>
+                          <span className="mt-1 block truncate text-sm text-muted-foreground">{customerMap.get(quotation.clientId) || `#${quotation.clientId}`}</span>
+                        </span>
+                        <span className="shrink-0 text-right"><span className="block font-semibold tabular-nums text-primary">{formatCurrency(quotation.total)}</span><span className="mt-1 block text-xs text-muted-foreground">{new Date(quotation.createdAt).toLocaleDateString("pt-BR")}</span></span>
+                      </button>
+                      {isExpanded && (
+                        <div className="flex flex-wrap items-center gap-2 border-t border-border/60 bg-muted/20 p-3">
+                          <Button type="button" variant="outline" size="sm" className="min-w-0 flex-1 gap-1.5" onClick={() => navigate(`/quotations/${quotation.id}/preview`)}><Eye className="h-4 w-4" />Ver</Button>
+                          <Button type="button" variant="outline" size="sm" className="min-w-0 flex-1 gap-1.5" onClick={() => navigate(`/quotations/${quotation.id}/edit`)}><FileText className="h-4 w-4" />Editar</Button>
+                          <Button type="button" variant="outline" size="sm" className="min-w-0 flex-1 gap-1.5" onClick={() => window.open(buildQuotationPdfUrl(quotation.id), "_blank", "noopener,noreferrer")}><Download className="h-4 w-4" />PDF</Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild><Button type="button" variant="outline" size="icon" className="h-9 w-9 shrink-0" aria-label={`Mais ações do orçamento ${quotation.number}`}><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-56">
+                              <DropdownMenuItem onClick={() => duplicateMutation.mutate({ id: quotation.id })}><Copy className="mr-2 h-4 w-4" />Duplicar orçamento</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setSelectedVersionQuotationId(quotation.id)}><History className="mr-2 h-4 w-4" />Ver histórico</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => shareEmail(quotation)}><Mail className="mr-2 h-4 w-4" />Compartilhar por e-mail</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => shareWhatsApp(quotation)}><MessageCircle className="mr-2 h-4 w-4" />Compartilhar por WhatsApp</DropdownMenuItem>
+                              {quotation.status === "rascunho" && <DropdownMenuItem onClick={() => updateStatusMutation.mutate({ id: quotation.id, status: "enviado" })}><Send className="mr-2 h-4 w-4" />Marcar como enviado</DropdownMenuItem>}
+                              {(quotation.status === "enviado" || quotation.status === "rascunho") && <DropdownMenuItem onClick={() => updateStatusMutation.mutate({ id: quotation.id, status: "aprovado" })}><CheckCircle className="mr-2 h-4 w-4" />Marcar como aprovado</DropdownMenuItem>}
+                              {quotation.status !== "rejeitado" && quotation.status !== "convertido" && <DropdownMenuItem onClick={() => updateStatusMutation.mutate({ id: quotation.id, status: "rejeitado" })}><XCircle className="mr-2 h-4 w-4" />Marcar como rejeitado</DropdownMenuItem>}
+                              {quotation.status === "aprovado" && <DropdownMenuItem onClick={() => convertMutation.mutate({ id: quotation.id })}><RefreshCw className="mr-2 h-4 w-4" />Converter em fatura</DropdownMenuItem>}
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem className="text-red-600 focus:text-red-600" onClick={() => { if (confirm(`Tem certeza que deseja excluir o orçamento ${quotation.number}?`)) deleteMutation.mutate({ id: quotation.id }); }}><XCircle className="mr-2 h-4 w-4" />Excluir</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      )}
+                    </article>
+                  );
+                })}
+              </div>
+              </>
             )}
           </CardContent>
         </Card>

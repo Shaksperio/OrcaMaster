@@ -326,3 +326,20 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [ ] Validar permissões, estados vazios, responsividade, testes e build
 - [x] Adicionar testes de contrato para atualização, exclusão e isolamento por empresa no CRUD de Clientes
 - [x] Registrar matriz de ações CRUD das abas no teste estrutural da interface
+
+
+## Fase 31 - Ações compactas na listagem de orçamentos
+- [x] Manter o cartão/listagem de orçamento contido na largura do viewport mobile
+- [x] Exibir visualizar, editar e PDF em ações fixas e acessíveis no registro
+- [x] Concentrar duplicação, histórico, compartilhamento, conversão e exclusão no menu de três pontos
+- [x] Evitar que menus e tabelas provoquem arraste lateral da página
+- [x] Validar desktop/mobile, navegação por teclado, testes, TypeScript e build
+
+
+## Fase 32 - Auditoria integral e recuperação
+- [ ] Auditar código, rotas, procedures, permissões, migrações e fluxos críticos
+- [ ] Revisar UX, responsividade, acessibilidade e erros de console/rede
+- [ ] Validar testes, TypeScript, build e execução das principais telas
+- [ ] Verificar sincronização write-through e cobertura do espelho Firebase sem alterar dados
+- [ ] Documentar limites de restauração e procedimentos de recuperação
+- [ ] Salvar checkpoint final do código no Manus e sincronizar o repositório GitHub
