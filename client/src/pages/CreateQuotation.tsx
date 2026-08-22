@@ -203,7 +203,7 @@ export default function CreateQuotation() {
 
   return (
     <AppLayout>
-      <div className="mx-auto w-full max-w-[1280px] space-y-6 px-4 py-7 sm:px-6 lg:px-8">
+      <div className="mx-auto min-w-0 w-full max-w-[1280px] space-y-6 overflow-x-hidden px-4 py-7 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex items-start gap-3 sm:items-center sm:gap-4">
           <Button variant="ghost" size="sm" onClick={() => navigate("/quotations")} className="gap-2">
@@ -217,29 +217,32 @@ export default function CreateQuotation() {
           </div>
         </div>
 
-        <Tabs defaultValue="geral" className="space-y-6 overflow-x-auto">
-          <TabsList className="grid h-12 w-full min-w-[620px] grid-cols-4">
-            <TabsTrigger value="geral" className="gap-2 text-sm">
+        <Tabs defaultValue="geral" className="min-w-0 w-full space-y-6 overflow-visible">
+          <div className="w-full max-w-full overflow-x-auto overscroll-x-contain">
+            <TabsList className="flex h-12 w-max min-w-full justify-start gap-1 p-1">
+
+            <TabsTrigger value="geral" className="min-w-[118px] flex-none gap-2 px-3 text-xs sm:text-sm">
               <Building2 className="w-4 h-4" />
               Geral
             </TabsTrigger>
-            <TabsTrigger value="itens" className="gap-2 text-sm">
+            <TabsTrigger value="itens" className="min-w-[118px] flex-none gap-2 px-3 text-xs sm:text-sm">
               <FileText className="w-4 h-4" />
               Itens
             </TabsTrigger>
-            <TabsTrigger value="pagamento" className="gap-2 text-sm">
+            <TabsTrigger value="pagamento" className="min-w-[118px] flex-none gap-2 px-3 text-xs sm:text-sm">
               <CreditCard className="w-4 h-4" />
               Pagamento
             </TabsTrigger>
-            <TabsTrigger value="detalhes" className="gap-2 text-sm">
+            <TabsTrigger value="detalhes" className="min-w-[118px] flex-none gap-2 px-3 text-xs sm:text-sm">
               <ScrollText className="w-4 h-4" />
               Detalhes
             </TabsTrigger>
-          </TabsList>
+            </TabsList>
+          </div>
 
           {/* ===== ABA GERAL ===== */}
           <TabsContent value="geral" className="space-y-6">
-            <Card className="border-border/70 shadow-sm">
+            <Card className="min-w-0 border-border/70 shadow-sm">
               <CardHeader>
                 <CardTitle className="text-lg">Contratante e Local</CardTitle>
               </CardHeader>
@@ -289,7 +292,7 @@ export default function CreateQuotation() {
 
           {/* ===== ABA ITENS ===== */}
           <TabsContent value="itens" className="space-y-6">
-            <Card className="border-border/70 shadow-sm">
+            <Card className="min-w-0 border-border/70 shadow-sm">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-lg">Itens do Orçamento</CardTitle>
                 <Button variant="outline" size="sm" onClick={addItem} className="gap-2">
@@ -300,7 +303,7 @@ export default function CreateQuotation() {
               <CardContent>
                 <div className="space-y-4">
                   {items.map((item, index) => (
-                    <div key={item.id} className="p-4 bg-muted/50 rounded-lg space-y-3">
+                    <div key={item.id} className="min-w-0 overflow-hidden rounded-lg bg-muted/50 p-4 space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium text-muted-foreground">Item {index + 1}</span>
                         {items.length > 1 && (
@@ -315,7 +318,7 @@ export default function CreateQuotation() {
                         )}
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                      <div className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-12">
                         <div className="md:col-span-3">
                           <Label className="text-xs">Produto (opcional)</Label>
                           <Select
@@ -361,7 +364,7 @@ export default function CreateQuotation() {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                      <div className="grid min-w-0 grid-cols-2 gap-3 md:grid-cols-5">
                         <div>
                           <Label className="text-xs">M²/Qtd.</Label>
                           <Input
@@ -416,7 +419,7 @@ export default function CreateQuotation() {
                 </div>
 
                 {/* Resumo de totais */}
-                <div className="mt-6 rounded-lg border border-primary/20 bg-primary/5 p-4">
+                <div className="mt-6 min-w-0 rounded-lg border border-primary/20 bg-primary/5 p-4">
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Subtotal</span>
@@ -465,7 +468,7 @@ export default function CreateQuotation() {
 
           {/* ===== ABA PAGAMENTO ===== */}
           <TabsContent value="pagamento" className="space-y-6">
-            <Card className="border-border/70 shadow-sm">
+            <Card className="min-w-0 border-border/70 shadow-sm">
               <CardHeader>
                 <CardTitle className="text-lg">Condições de Pagamento</CardTitle>
               </CardHeader>
@@ -500,7 +503,7 @@ export default function CreateQuotation() {
               </CardContent>
             </Card>
 
-            <Card className="border-border/70 shadow-sm">
+            <Card className="min-w-0 border-border/70 shadow-sm">
               <CardHeader>
                 <CardTitle className="text-lg">Dados PIX para QR Code</CardTitle>
               </CardHeader>
@@ -537,7 +540,7 @@ export default function CreateQuotation() {
 
           {/* ===== ABA DETALHES ===== */}
           <TabsContent value="detalhes" className="space-y-6">
-            <Card className="border-border/70 shadow-sm">
+            <Card className="min-w-0 border-border/70 shadow-sm">
               <CardHeader>
                 <CardTitle className="text-lg">Descrição dos Serviços Contratados</CardTitle>
               </CardHeader>
@@ -555,7 +558,7 @@ export default function CreateQuotation() {
               </CardContent>
             </Card>
 
-            <Card className="border-border/70 shadow-sm">
+            <Card className="min-w-0 border-border/70 shadow-sm">
               <CardHeader>
                 <CardTitle className="text-lg">Prazo e Observações</CardTitle>
               </CardHeader>
@@ -594,14 +597,14 @@ export default function CreateQuotation() {
         </Tabs>
 
         {/* Actions - sempre visível */}
-        <div className="sticky bottom-0 z-10 -mx-4 flex justify-end gap-3 border-t border-border/70 bg-background/95 px-4 py-4 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:pt-2 sm:pb-8">
-          <Button variant="outline" onClick={() => navigate("/quotations")}>
+        <div className="sticky bottom-0 z-10 -mx-4 grid grid-cols-2 gap-2 border-t border-border/70 bg-background/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:flex sm:justify-end sm:gap-3 sm:border-0 sm:bg-transparent sm:px-0 sm:pt-2 sm:pb-8">
+          <Button variant="outline" onClick={() => navigate("/quotations")} className="min-w-0 whitespace-nowrap px-3 text-sm">
             Cancelar
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={createMutation.isPending}
-            className="gap-2 bg-primary px-8 text-primary-foreground shadow-sm hover:bg-primary/90"
+            className="min-w-0 gap-2 whitespace-nowrap bg-primary px-3 text-sm text-primary-foreground shadow-sm hover:bg-primary/90 sm:px-8"
           >
             {createMutation.isPending ? (
               <>
@@ -610,8 +613,8 @@ export default function CreateQuotation() {
               </>
             ) : (
               <>
-                <Save className="w-4 h-4" />
-                Criar Orçamento
+                <Save className="h-4 w-4 shrink-0" />
+                <span className="sm:hidden">Criar</span><span className="hidden sm:inline">Criar Orçamento</span>
               </>
             )}
           </Button>

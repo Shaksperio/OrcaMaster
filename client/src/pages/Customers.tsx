@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Search, Users } from "lucide-react";
+import { Edit, Plus, Search, Trash2, Users } from "lucide-react";
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
@@ -15,6 +15,7 @@ import { toast } from "sonner";
 export default function Customers() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingCustomerId, setEditingCustomerId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     document: "",
@@ -35,6 +36,22 @@ export default function Customers() {
     { enabled: !!activeCompany?.id }
   );
 
+  const resetForm = () => {
+    setFormData({ name: "", document: "", email: "", phone: "", address: "", city: "", state: "", zipCode: "", notes: "" });
+    setEditingCustomerId(null);
+  };
+
+  const openCreateDialog = () => {
+    resetForm();
+    setIsDialogOpen(true);
+  };
+
+  const openEditDialog = (customer: any) => {
+    setEditingCustomerId(customer.id);
+    setFormData({ name: customer.name || "", document: customer.document || "", email: customer.email || "", phone: customer.phone || "", address: customer.address || "", city: customer.city || "", state: customer.state || "", zipCode: customer.zipCode || "", notes: customer.notes || "" });
+    setIsDialogOpen(true);
+  };
+
   const createCustomerMutation = trpc.customers.create.useMutation({
     onSuccess: () => {
       // Invalidar cache para refetch automático
@@ -45,6 +62,29 @@ export default function Customers() {
       toast.error("Erro ao criar cliente: " + (error.message || "Tente novamente"));
     },
   });
+
+  const updateCustomerMutation = trpc.customers.update.useMutation({
+    onSuccess: () => {
+      utils.customers.list.invalidate({ companyId: activeCompany?.id });
+      toast.success("Cliente atualizado com sucesso!");
+      setIsDialogOpen(false);
+      resetForm();
+    },
+    onError: (error) => toast.error("Erro ao atualizar cliente: " + (error.message || "Tente novamente")),
+  });
+
+  const deleteCustomerMutation = trpc.customers.delete.useMutation({
+    onSuccess: () => {
+      utils.customers.list.invalidate({ companyId: activeCompany?.id });
+      toast.success("Cliente excluído com sucesso!");
+    },
+    onError: (error) => toast.error("Erro ao excluir cliente: " + (error.message || "Tente novamente")),
+  });
+
+  const handleDeleteCustomer = (customer: any) => {
+    if (!activeCompany || !window.confirm(`Excluir o cliente ${customer.name}? Esta ação não pode ser desfeita.`)) return;
+    deleteCustomerMutation.mutate({ id: customer.id, companyId: activeCompany.id });
+  };
 
   const handleCreateCustomer = async () => {
     try {
@@ -61,20 +101,22 @@ export default function Customers() {
         ...formData,
       });
       setIsDialogOpen(false);
-      setFormData({
-        name: "",
-        document: "",
-        email: "",
-        phone: "",
-        address: "",
-        city: "",
-        state: "",
-        zipCode: "",
-        notes: "",
-      });
+      resetForm();
     } catch (error) {
       console.error("Erro ao criar cliente:", error);
     }
+  };
+
+  const handleSubmitCustomer = async () => {
+    if (editingCustomerId) {
+      if (!activeCompany || !formData.name.trim()) {
+        toast.error(activeCompany ? "Nome do cliente é obrigatório" : "Selecione uma empresa primeiro");
+        return;
+      }
+      await updateCustomerMutation.mutateAsync({ id: editingCustomerId, companyId: activeCompany.id, ...formData });
+      return;
+    }
+    await handleCreateCustomer();
   };
 
   const filteredCustomers = customers?.filter(c =>
@@ -92,19 +134,17 @@ export default function Customers() {
             <h1 className="text-3xl font-semibold tracking-tight text-foreground">Clientes</h1>
             <p className="mt-2 text-sm text-muted-foreground">Centralize contatos, documentos e histórico comercial.</p>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
             <DialogTrigger asChild>
-              <Button className="gap-2 bg-primary text-primary-foreground shadow-sm hover:bg-primary/90">
+              <Button onClick={openCreateDialog} className="gap-2 bg-primary text-primary-foreground shadow-sm hover:bg-primary/90">
                 <Plus className="w-4 h-4" />
                 Novo Cliente
               </Button>
             </DialogTrigger>
             <DialogContent className="max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Criar Novo Cliente</DialogTitle>
-                <DialogDescription>
-                  Preencha os dados para criar um novo cliente
-                </DialogDescription>
+                <DialogTitle>{editingCustomerId ? "Editar Cliente" : "Criar Novo Cliente"}</DialogTitle>
+                <DialogDescription>{editingCustomerId ? "Atualize os dados deste cliente" : "Preencha os dados para criar um novo cliente"}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
@@ -194,17 +234,17 @@ export default function Customers() {
                   />
                 </div>
                 <Button
-                  onClick={handleCreateCustomer}
-                  disabled={createCustomerMutation.isPending}
+                  onClick={handleSubmitCustomer}
+                  disabled={createCustomerMutation.isPending || updateCustomerMutation.isPending}
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   {createCustomerMutation.isPending ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Criando...
+                      {editingCustomerId ? "Salvando..." : "Criando..."}
                     </>
                   ) : (
-                    "Criar Cliente"
+                    editingCustomerId ? "Salvar Alterações" : "Criar Cliente"
                   )}
                 </Button>
               </div>
@@ -248,7 +288,7 @@ export default function Customers() {
                 {filteredCustomers.map((customer) => (
                   <div
                     key={customer.id}
-                    className="flex items-center justify-between gap-4 rounded-lg px-2 py-4 transition-colors hover:bg-muted/40"
+                    className="flex min-w-0 flex-col gap-3 rounded-lg px-2 py-4 transition-colors hover:bg-muted/40 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div className="flex min-w-0 items-center gap-3">
                       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-semibold text-secondary-foreground">{customer.name.slice(0, 1).toUpperCase()}</div>
@@ -257,9 +297,15 @@ export default function Customers() {
                         <p className="truncate text-sm text-muted-foreground">{customer.document && `${customer.document} • `}{customer.email}</p>
                       </div>
                     </div>
-                    <div className="shrink-0 text-right">
-                      {customer.phone && <p className="text-sm text-foreground">{customer.phone}</p>}
-                      {customer.city && <p className="text-sm text-muted-foreground">{customer.city}, {customer.state}</p>}
+                    <div className="flex shrink-0 items-center justify-between gap-3 sm:justify-end">
+                      <div className="text-right">
+                        {customer.phone && <p className="text-sm text-foreground">{customer.phone}</p>}
+                        {customer.city && <p className="text-sm text-muted-foreground">{customer.city}, {customer.state}</p>}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Button type="button" variant="ghost" size="icon" aria-label={`Editar ${customer.name}`} title="Editar cliente" onClick={() => openEditDialog(customer)} className="h-9 w-9 text-muted-foreground hover:text-primary"><Edit className="h-4 w-4" /></Button>
+                        <Button type="button" variant="ghost" size="icon" aria-label={`Excluir ${customer.name}`} title="Excluir cliente" onClick={() => handleDeleteCustomer(customer)} disabled={deleteCustomerMutation.isPending} className="h-9 w-9 text-muted-foreground hover:bg-red-50 hover:text-red-600"><Trash2 className="h-4 w-4" /></Button>
+                      </div>
                     </div>
                   </div>
                 ))}

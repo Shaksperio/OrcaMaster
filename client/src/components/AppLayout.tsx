@@ -160,7 +160,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         </button>
       </aside>
 
-      <div className={cn("flex min-h-screen flex-col transition-[margin] duration-200", isCollapsed ? "md:ml-[68px]" : "md:ml-[248px]")}>
+      <div className={cn("flex min-h-screen min-w-0 flex-col overflow-x-hidden transition-[margin] duration-200", isCollapsed ? "md:ml-[68px]" : "md:ml-[248px]")}>
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border/70 bg-background/95 px-4 backdrop-blur md:px-8">
           <div className="flex min-w-0 items-center gap-3">
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -177,7 +177,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground"><BarChart3 className="h-4 w-4" /><span className="hidden sm:inline">Visão geral da operação</span></div>
         </header>
-        <main className="min-h-0 flex-1">{children}</main>
+        <main className="min-h-0 min-w-0 flex-1 overflow-x-hidden">{children}</main>
         {location !== "/assistant" && <AssistantFloatingChat />}
       </div>
     </div>

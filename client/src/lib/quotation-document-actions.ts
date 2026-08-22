@@ -1,5 +1,8 @@
-export function buildQuotationPdfUrl(id: number | string): string {
-  return `/api/quotations/${encodeURIComponent(String(id))}/pdf`;
+export type QuotationLayout = "executivo" | "contemporaneo" | "sereno";
+
+export function buildQuotationPdfUrl(id: number | string, layout?: QuotationLayout): string {
+  const base = `/api/quotations/${encodeURIComponent(String(id))}/pdf`;
+  return layout ? `${base}?layout=${encodeURIComponent(layout)}` : base;
 }
 
 export function buildQuotationPreviewUrl(id: number | string): string {

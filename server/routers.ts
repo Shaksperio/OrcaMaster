@@ -279,12 +279,13 @@ export const appRouter = router({
         companyId: z.number(),
         name: z.string().min(1),
         document: z.string().optional(),
-        email: z.string().email().optional(),
+        email: z.union([z.string().email(), z.literal("")]).optional(),
         phone: z.string().optional(),
         address: z.string().optional(),
         city: z.string().optional(),
         state: z.string().optional(),
         zipCode: z.string().optional(),
+        notes: z.string().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         const { isOwner, member } = await checkCompanyAccess(ctx.user.id, input.companyId);
@@ -294,6 +295,41 @@ export const appRouter = router({
         const clientId = (client as any).insertId || (client as any).id;
         if (clientId) syncToFirebase("client", clientId, input, { companyId: input.companyId });
         return client;
+      }),
+
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        companyId: z.number(),
+        name: z.string().min(1),
+        document: z.string().optional(),
+        email: z.union([z.string().email(), z.literal("")]).optional(),
+        phone: z.string().optional(),
+        address: z.string().optional(),
+        city: z.string().optional(),
+        state: z.string().optional(),
+        zipCode: z.string().optional(),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        await checkCompanyAccess(ctx.user.id, input.companyId);
+        const existing = await db.getClientById(input.id);
+        if (!existing || existing.companyId !== input.companyId) throw new TRPCError({ code: "NOT_FOUND" });
+        const { id: _id, companyId: _companyId, ...changes } = input;
+        const updated = await db.updateClient(input.id, changes);
+        if (updated) syncToFirebase("client", input.id, { ...updated }, { companyId: input.companyId });
+        return updated;
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number(), companyId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        await checkCompanyAccess(ctx.user.id, input.companyId);
+        const existing = await db.getClientById(input.id);
+        if (!existing || existing.companyId !== input.companyId) throw new TRPCError({ code: "NOT_FOUND" });
+        await db.deleteClient(input.id);
+        syncToFirebase("client", input.id, null, { companyId: input.companyId });
+        return { id: input.id };
       }),
   }),
 

@@ -129,7 +129,7 @@ describe("QuotationPreview — ações do documento", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Gerar PDF" }));
     expect(openSpy).toHaveBeenCalledWith(
-      buildQuotationPdfUrl("1"),
+      buildQuotationPdfUrl("1", "executivo"),
       "_blank",
       "noopener,noreferrer",
     );

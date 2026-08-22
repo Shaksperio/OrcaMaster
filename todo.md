@@ -301,3 +301,28 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [x] Atualizar estilos de impressão para manter a composição elegante em papel
 - [x] Atualizar o gerador PDF com a mesma identidade visual e tratamento proporcional da logo
 - [x] Validar visualmente preview desktop/mobile, impressão, PDF, testes, TypeScript e build
+
+
+## Fase 28 - Correção de overflow horizontal no editor de orçamento
+- [ ] Manter o viewport do editor fixo em telas estreitas sem deslocamento lateral
+- [ ] Restringir overflow horizontal à faixa de abas, com rolagem apenas dentro dela
+- [ ] Adaptar conteúdo, cards, inputs e textos longos para a largura disponível
+- [ ] Ajustar barra de ações fixa para caber no mobile sem cortar botões ou texto
+- [ ] Validar no viewport 720x1446, teclado, testes, TypeScript e build
+
+
+## Fase 29 - Modelos alternativos de orçamento
+- [ ] Definir modelos visuais com paletas harmoniosas e tratamento neutro da logo
+- [ ] Implementar seletor de modelo no editor/preview sem alterar os dados do orçamento
+- [ ] Aplicar a variante selecionada ao preview responsivo e à impressão
+- [ ] Aplicar a variante selecionada ao gerador PDF server-side
+- [ ] Validar todas as variantes em desktop/mobile, testes, TypeScript e build
+
+
+## Fase 30 - Auditoria e correção dos CRUDs
+- [ ] Auditar todas as abas e identificar ações existentes de adicionar, editar e excluir
+- [x] Corrigir a aba Clientes para oferecer edição e exclusão com confirmação
+- [ ] Garantir ações equivalentes nos CRUDs de produtos, fornecedores, profissionais, despesas, orçamentos e faturas
+- [ ] Validar permissões, estados vazios, responsividade, testes e build
+- [x] Adicionar testes de contrato para atualização, exclusão e isolamento por empresa no CRUD de Clientes
+- [x] Registrar matriz de ações CRUD das abas no teste estrutural da interface

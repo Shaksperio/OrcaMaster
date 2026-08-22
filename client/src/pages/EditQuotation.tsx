@@ -236,42 +236,44 @@ export default function EditQuotation() {
 
   return (
     <AppLayout>
-      <div className="p-6 md:p-8 max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
+      <div className="mx-auto min-w-0 w-full max-w-5xl overflow-x-hidden px-4 py-5 sm:px-6 md:p-8">
+        <div className="mb-6 flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-start gap-3 sm:items-center">
             <Button variant="outline" size="sm" onClick={() => navigate("/quotations")} className="gap-2">
               <ArrowLeft className="w-4 h-4" />
               Voltar
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Editar Orçamento {quotation?.number}</h1>
+              <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">Editar Orçamento {quotation?.number}</h1>
               <p className="text-muted-foreground text-sm">Atualize os campos, valores e itens do orçamento</p>
             </div>
           </div>
           <Button
             type="submit"
             form="edit-quotation-form"
-            className="bg-[#1B5E20] hover:bg-[#1B5E20]/90 text-white gap-2"
+            className="w-full min-w-0 gap-2 whitespace-nowrap bg-primary text-primary-foreground hover:bg-primary/90 sm:w-auto"
             disabled={updateMutation.isPending}
           >
             {updateMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            Salvar Alterações
+            <span className="sm:hidden">Salvar</span><span className="hidden sm:inline">Salvar Alterações</span>
           </Button>
         </div>
 
         <form id="edit-quotation-form" onSubmit={handleSubmit} className="space-y-6">
-          <Tabs defaultValue="geral" className="w-full">
-            <TabsList className="grid grid-cols-4 w-full bg-muted p-1 rounded-lg">
-              <TabsTrigger value="geral" className="gap-2"><FileText className="w-4 h-4" /> Geral & Cliente</TabsTrigger>
-              <TabsTrigger value="itens" className="gap-2"><Plus className="w-4 h-4" /> Itens & Valores</TabsTrigger>
-              <TabsTrigger value="pagamento" className="gap-2"><CreditCard className="w-4 h-4" /> Pagamento & PIX</TabsTrigger>
-              <TabsTrigger value="termos" className="gap-2"><ScrollText className="w-4 h-4" /> Condições & Textos</TabsTrigger>
-            </TabsList>
+          <Tabs defaultValue="geral" className="min-w-0 w-full">
+            <div className="w-full max-w-full overflow-x-auto overscroll-x-contain">
+              <TabsList className="flex h-12 w-max min-w-full justify-start gap-1 rounded-lg bg-muted p-1">
+              <TabsTrigger value="geral" className="min-w-[150px] flex-none gap-2 whitespace-nowrap px-3 text-xs sm:text-sm"><FileText className="w-4 h-4" /> Geral & Cliente</TabsTrigger>
+              <TabsTrigger value="itens" className="min-w-[150px] flex-none gap-2 whitespace-nowrap px-3 text-xs sm:text-sm"><Plus className="w-4 h-4" /> Itens & Valores</TabsTrigger>
+              <TabsTrigger value="pagamento" className="min-w-[150px] flex-none gap-2 whitespace-nowrap px-3 text-xs sm:text-sm"><CreditCard className="w-4 h-4" /> Pagamento & PIX</TabsTrigger>
+              <TabsTrigger value="termos" className="min-w-[150px] flex-none gap-2 whitespace-nowrap px-3 text-xs sm:text-sm"><ScrollText className="w-4 h-4" /> Condições & Textos</TabsTrigger>
+              </TabsList>
+            </div>
 
             <TabsContent value="geral" className="space-y-6 pt-4">
-              <Card className="border-0 shadow-sm">
+              <Card className="min-w-0 border-0 shadow-sm">
                 <CardHeader><CardTitle className="text-lg">Informações Principais</CardTitle></CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <CardContent className="grid min-w-0 grid-cols-1 gap-6 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="client">Cliente *</Label>
                     <Select value={clientId} onValueChange={setClientId}>
@@ -318,8 +320,8 @@ export default function EditQuotation() {
             </TabsContent>
 
             <TabsContent value="itens" className="space-y-6 pt-4">
-              <Card className="border-0 shadow-sm">
-                <CardHeader className="flex flex-row items-center justify-between">
+              <Card className="min-w-0 border-0 shadow-sm">
+                <CardHeader className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <CardTitle className="text-lg">Itens do Orçamento (Produtos e Serviços)</CardTitle>
                   <Button type="button" size="sm" onClick={addItem} className="bg-[#1B5E20] hover:bg-[#1B5E20]/90 text-white gap-2">
                     <Plus className="w-4 h-4" /> Adicionar Item
@@ -327,7 +329,7 @@ export default function EditQuotation() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {items.map((item, index) => (
-                    <div key={item.id} className="p-4 rounded-lg border border-border bg-card space-y-4">
+                    <div key={item.id} className="min-w-0 overflow-hidden rounded-lg border border-border bg-card p-4 space-y-4">
                       <div className="flex items-center justify-between">
                         <span className="font-semibold text-sm">Item #{index + 1}</span>
                         {items.length > 1 && (
@@ -337,7 +339,7 @@ export default function EditQuotation() {
                         )}
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                      <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-12">
                         {products.length > 0 && (
                           <div className="md:col-span-3 space-y-1">
                             <Label className="text-xs">Catálogo</Label>
@@ -382,12 +384,12 @@ export default function EditQuotation() {
                     </div>
                   ))}
 
-                  <div className="mt-6 p-4 rounded-lg bg-muted/40 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <div className="flex gap-6 text-sm">
+                  <div className="mt-6 flex min-w-0 flex-col items-stretch justify-between gap-4 rounded-lg bg-muted/40 p-4 md:flex-row md:items-center">
+                    <div className="flex min-w-0 flex-wrap gap-4 text-sm sm:gap-6">
                       <div>Subtotal: <span className="font-semibold">R$ {subtotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span></div>
                       <div>Desconto Geral (%): <Input className="inline-block w-20 h-8 ml-2" type="number" value={discountPercentage} onChange={(e) => setDiscountPercentage(e.target.value)} /></div>
                     </div>
-                    <div className="text-lg font-bold text-[#1B5E20]">
+                    <div className="text-right text-lg font-bold text-primary md:whitespace-nowrap">
                       Total Geral: R$ {total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                     </div>
                   </div>
@@ -396,9 +398,9 @@ export default function EditQuotation() {
             </TabsContent>
 
             <TabsContent value="pagamento" className="space-y-6 pt-4">
-              <Card className="border-0 shadow-sm">
+              <Card className="min-w-0 border-0 shadow-sm">
                 <CardHeader><CardTitle className="text-lg">Dados Bancários & PIX</CardTitle></CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <CardContent className="grid min-w-0 grid-cols-1 gap-6 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="pixHolder">Titular da Conta / PIX</Label>
                     <Input id="pixHolder" placeholder="Ex: OrçaMaster Ltda." value={pixHolder} onChange={(e) => setPixHolder(e.target.value)} />
@@ -424,7 +426,7 @@ export default function EditQuotation() {
             </TabsContent>
 
             <TabsContent value="termos" className="space-y-6 pt-4">
-              <Card className="border-0 shadow-sm">
+              <Card className="min-w-0 border-0 shadow-sm">
                 <CardHeader><CardTitle className="text-lg">Termos, Condições e Textos Jurídicos</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">

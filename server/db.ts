@@ -137,6 +137,20 @@ export async function createClient(data: typeof clients.$inferInsert) {
   return result[0];
 }
 
+export async function updateClient(clientId: number, data: Partial<typeof clients.$inferInsert>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(clients).set(data).where(eq(clients.id, clientId));
+  return getClientById(clientId);
+}
+
+export async function deleteClient(clientId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(clients).where(eq(clients.id, clientId));
+  return { id: clientId };
+}
+
 // Product queries
 export async function getCompanyProducts(companyId: number) {
   const db = await getDb();

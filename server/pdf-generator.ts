@@ -55,6 +55,7 @@ interface QuotationPDFData {
   legalNotice?: string;
   notes?: string;
   itemTypeLabel?: string;
+  layout?: "executivo" | "contemporaneo" | "sereno";
 }
 
 const ORANGE = "#D8921B";
@@ -64,6 +65,17 @@ const DARK = "#243247";
 const MUTED = "#64748B";
 const LINE = "#E5EAF0";
 const WHITE = "#FFFFFF";
+
+type PdfPalette = { accent: string; ink: string; soft: string; line: string };
+const PDF_PALETTES: Record<NonNullable<QuotationPDFData["layout"]>, PdfPalette> = {
+  executivo: { accent: "#D8921B", ink: "#132238", soft: "#F7F9FC", line: "#DDE5EF" },
+  contemporaneo: { accent: "#E07A5F", ink: "#173B4D", soft: "#F4F8F9", line: "#D8E6E9" },
+  sereno: { accent: "#B77B57", ink: "#28443C", soft: "#F5F8F4", line: "#DDE8DF" },
+};
+
+function getPdfPalette(layout?: QuotationPDFData["layout"]): PdfPalette {
+  return PDF_PALETTES[layout || "executivo"] || PDF_PALETTES.executivo;
+}
 
 function fmtDate(date: string | Date | null | undefined): string {
   if (!date) return "—";
