@@ -343,3 +343,12 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [ ] Verificar sincronização write-through e cobertura do espelho Firebase sem alterar dados
 - [ ] Documentar limites de restauração e procedimentos de recuperação
 - [ ] Salvar checkpoint final do código no Manus e sincronizar o repositório GitHub
+
+## Fase 37 - Backup Google Drive do usuário
+- [x] Usar OAuth para conectar a própria conta Google do usuário, sem senha e sem conta central do OrçaMaster
+- [x] Adicionar backup manual e automático opt-in nas Configurações
+- [x] Salvar uma nova cópia em segundo plano após alterações persistidas, sem bloquear a interface
+- [x] Versionar snapshots, manter histórico e permitir pausar o automático sem apagar cópias existentes
+- [x] Implementar restauração com validação, prévia, confirmação e isolamento por empresa
+- [x] Preservar o MySQL como principal e o Firebase como espelho alternativo
+- [x] Testar OAuth, backup, fila, falhas, restauração, TypeScript e build

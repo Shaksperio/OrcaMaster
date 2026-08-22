@@ -11,6 +11,7 @@ import { answerCompanyAssistant } from "./ai-assistant";
 import { getAssistantActionPolicy, prepareAssistantAction, confirmAssistantAction } from "./assistant-actions";
 import { eq, and } from "drizzle-orm";
 import { companyMembers, companies } from "../drizzle/schema";
+import { createDriveAuthorizationUrl, getDriveConnection, isGoogleDriveConfigured, listDriveBackups, previewCompanyBackup, restoreCompanyBackup, setDrivePreferences, uploadCompanyBackup } from "./google-drive";
 
 // Helper to check user access to company
 async function checkCompanyAccess(userId: number, companyId: number) {
@@ -100,6 +101,31 @@ export const appRouter = router({
           throw new TRPCError({ code: "BAD_REQUEST", message: error instanceof Error ? error.message : "Não foi possível confirmar a ação." });
         }
       }),
+    driveStatus: protectedProcedure.input(z.object({ companyId: z.number().int().positive() })).query(async ({ input, ctx }) => {
+      await checkCompanyAccess(ctx.user.id, input.companyId);
+      const connection = await getDriveConnection(input.companyId);
+      return { configured: isGoogleDriveConfigured(), connected: Boolean(connection?.enabled), autoBackupEnabled: Boolean(connection?.autoBackupEnabled), driveEmail: connection?.driveEmail ?? null, lastBackupAt: connection?.lastBackupAt ?? null, lastError: connection?.lastError ?? null };
+    }),
+    driveAuthorizationUrl: protectedProcedure.input(z.object({ companyId: z.number().int().positive(), origin: z.string().url() })).mutation(async ({ input, ctx }) => {
+      const access = await checkCompanyAccess(ctx.user.id, input.companyId);
+      if (!access.isOwner) throw new TRPCError({ code: "FORBIDDEN", message: "Somente o proprietário pode conectar o Google Drive." });
+      try { return { url: createDriveAuthorizationUrl(input.companyId, ctx.user.id, input.origin) }; }
+      catch (error) { throw new TRPCError({ code: "BAD_REQUEST", message: error instanceof Error ? error.message : "Google Drive não configurado." }); }
+    }),
+    drivePreferences: protectedProcedure.input(z.object({ companyId: z.number().int().positive(), enabled: z.boolean(), autoBackupEnabled: z.boolean() })).mutation(async ({ input, ctx }) => {
+      const access = await checkCompanyAccess(ctx.user.id, input.companyId);
+      if (!access.isOwner) throw new TRPCError({ code: "FORBIDDEN", message: "Somente o proprietário pode alterar as preferências do Drive." });
+      return setDrivePreferences(input.companyId, input.enabled, input.autoBackupEnabled);
+    }),
+    driveBackups: protectedProcedure.input(z.object({ companyId: z.number().int().positive() })).query(async ({ input, ctx }) => { await checkCompanyAccess(ctx.user.id, input.companyId); return listDriveBackups(input.companyId); }),
+    driveRestorePreview: protectedProcedure.input(z.object({ companyId: z.number().int().positive(), backupId: z.number().int().positive() })).query(async ({ input, ctx }) => { await checkCompanyAccess(ctx.user.id, input.companyId); try { return await previewCompanyBackup(input.companyId, input.backupId); } catch (error) { throw new TRPCError({ code: "BAD_REQUEST", message: error instanceof Error ? error.message : "Snapshot inválido." }); } }),
+    driveRestore: protectedProcedure.input(z.object({ companyId: z.number().int().positive(), backupId: z.number().int().positive(), confirmation: z.literal(true) })).mutation(async ({ input, ctx }) => { const access = await checkCompanyAccess(ctx.user.id, input.companyId); if (!access.isOwner) throw new TRPCError({ code: "FORBIDDEN", message: "Somente o proprietário pode restaurar um backup." }); try { return await restoreCompanyBackup(input.companyId, input.backupId); } catch (error) { throw new TRPCError({ code: "BAD_REQUEST", message: error instanceof Error ? error.message : "Não foi possível restaurar o backup." }); } }),
+    driveCreateBackup: protectedProcedure.input(z.object({ companyId: z.number().int().positive() })).mutation(async ({ input, ctx }) => {
+      const access = await checkCompanyAccess(ctx.user.id, input.companyId);
+      if (!access.isOwner) throw new TRPCError({ code: "FORBIDDEN", message: "Somente o proprietário pode criar backups." });
+      try { return await uploadCompanyBackup(input.companyId); }
+      catch (error) { throw new TRPCError({ code: "BAD_REQUEST", message: error instanceof Error ? error.message : "Não foi possível criar o backup." }); }
+    }),
     priceSuggestion: protectedProcedure
       .input(z.object({ companyId: z.number().int().positive(), productId: z.number().int().positive() }))
       .query(async ({ input, ctx }) => {

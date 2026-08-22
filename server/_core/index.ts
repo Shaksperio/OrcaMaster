@@ -7,6 +7,7 @@ import { registerOAuthRoutes } from "./oauth";
 import { registerStorageProxy } from "./storageProxy";
 import { registerPdfRoutes, registerReportPdfRoutes } from "../pdf-routes";
 import { productSyncHandler } from "../product-sync-route";
+import { registerGoogleDriveRoutes } from "../google-drive";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
@@ -40,6 +41,7 @@ async function startServer() {
   registerOAuthRoutes(app);
   registerPdfRoutes(app);
   registerReportPdfRoutes(app);
+  registerGoogleDriveRoutes(app);
   // Heartbeat callback; authenticated cron identity is validated in the handler.
   app.post("/api/scheduled/product-sync", productSyncHandler);
   // tRPC API

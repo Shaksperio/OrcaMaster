@@ -502,3 +502,45 @@ export const expenses = mysqlTable("expenses", {
 
 export type Expense = typeof expenses.$inferSelect;
 export type InsertExpense = typeof expenses.$inferInsert;
+
+/** Optional per-company Google Drive OAuth connection and versioned backups. */
+export const googleDriveConnections = mysqlTable("googleDriveConnections", {
+  id: int("id").autoincrement().primaryKey(),
+  companyId: int("companyId").notNull().unique(),
+  userId: int("userId").notNull(),
+  driveEmail: varchar("driveEmail", { length: 320 }),
+  accessTokenEncrypted: text("accessTokenEncrypted").notNull(),
+  refreshTokenEncrypted: text("refreshTokenEncrypted").notNull(),
+  scope: varchar("scope", { length: 500 }),
+  enabled: boolean("enabled").default(true).notNull(),
+  autoBackupEnabled: boolean("autoBackupEnabled").default(false).notNull(),
+  lastBackupAt: datetime("lastBackupAt"),
+  lastError: text("lastError"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  companyIdIdx: index("googleDriveConnections_companyId_idx").on(table.companyId),
+  userIdIdx: index("googleDriveConnections_userId_idx").on(table.userId),
+}));
+export type GoogleDriveConnection = typeof googleDriveConnections.$inferSelect;
+export type InsertGoogleDriveConnection = typeof googleDriveConnections.$inferInsert;
+
+export const googleDriveBackups = mysqlTable("googleDriveBackups", {
+  id: int("id").autoincrement().primaryKey(),
+  companyId: int("companyId").notNull(),
+  connectionId: int("connectionId").notNull(),
+  driveFileId: varchar("driveFileId", { length: 255 }),
+  fileName: varchar("fileName", { length: 255 }).notNull(),
+  checksum: varchar("checksum", { length: 64 }).notNull(),
+  byteSize: int("byteSize").default(0).notNull(),
+  status: mysqlEnum("status", ["pending", "uploaded", "failed"]).default("pending").notNull(),
+  errorMessage: text("errorMessage"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  completedAt: datetime("completedAt"),
+}, (table) => ({
+  companyIdIdx: index("googleDriveBackups_companyId_idx").on(table.companyId),
+  connectionIdIdx: index("googleDriveBackups_connectionId_idx").on(table.connectionId),
+  statusIdx: index("googleDriveBackups_status_idx").on(table.status),
+}));
+export type GoogleDriveBackup = typeof googleDriveBackups.$inferSelect;
+export type InsertGoogleDriveBackup = typeof googleDriveBackups.$inferInsert;

@@ -1,4 +1,5 @@
 import { getFirebaseDb, isFirebaseEnabled } from "./firebase";
+import { queueCompanyBackup } from "./google-drive";
 
 /**
  * Firebase Realtime Database Sync Layer
@@ -46,6 +47,8 @@ export async function syncToFirebase(
   data: Record<string, any> | null, // null = delete
   options: SyncOptions = {}
 ): Promise<void> {
+  const changedCompanyId = options.companyId ?? (entity === "company" ? id : undefined);
+  if (changedCompanyId) queueCompanyBackup(changedCompanyId);
   if (!isFirebaseEnabled()) return;
 
   const db = getFirebaseDb();
@@ -77,6 +80,7 @@ export async function syncBatchToFirebase(
   items: Array<{ id: number; data: Record<string, any> }>,
   options: SyncOptions = {}
 ): Promise<void> {
+  if (options.companyId) queueCompanyBackup(options.companyId);
   if (!isFirebaseEnabled()) return;
 
   const db = getFirebaseDb();
@@ -144,6 +148,7 @@ export async function syncFullCompany(
     }
 
     await companyRef.set(fullData);
+    queueCompanyBackup(companyId);
     console.log(`[Firebase Sync] Full company #${companyId} synced successfully.`);
   } catch (error: any) {
     console.error(`[Firebase Sync] Full company sync error:`, error.message);

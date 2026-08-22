@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SettingsIcon, Palette, FileText, Loader2, Save, CheckCircle, Upload, X, Image as ImageIcon } from "lucide-react";
+import { SettingsIcon, Palette, FileText, Loader2, Save, CheckCircle, Upload, X, Image as ImageIcon, Cloud, Download, RefreshCw, Unplug } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useCompany } from "@/contexts/CompanyContext";
 import { trpc } from "@/lib/trpc";
@@ -13,6 +13,42 @@ import { toast } from "sonner";
 export default function Settings() {
   const { activeCompany, isLoading, companies } = useCompany();
   const utils = trpc.useUtils();
+
+  const driveStatusQuery = trpc.ai.driveStatus.useQuery({ companyId: activeCompany?.id ?? 0 }, { enabled: !!activeCompany?.id });
+  const driveBackupsQuery = trpc.ai.driveBackups.useQuery({ companyId: activeCompany?.id ?? 0 }, { enabled: !!activeCompany?.id });
+  const driveAuthorizationMutation = trpc.ai.driveAuthorizationUrl.useMutation({ onSuccess: ({ url }) => { window.location.assign(url); }, onError: (error) => toast.error(error.message) });
+  const drivePreferencesMutation = trpc.ai.drivePreferences.useMutation({ onSuccess: () => { toast.success("Preferências do Google Drive salvas."); driveStatusQuery.refetch(); }, onError: (error) => toast.error(error.message) });
+  const driveBackupMutation = trpc.ai.driveCreateBackup.useMutation({ onSuccess: () => { toast.success("Backup enviado ao Google Drive."); driveBackupsQuery.refetch(); driveStatusQuery.refetch(); }, onError: (error) => toast.error(error.message) });
+  const driveRestoreMutation = trpc.ai.driveRestore.useMutation({ onSuccess: () => { toast.success("Backup restaurado com sucesso."); driveStatusQuery.refetch(); }, onError: (error) => toast.error(error.message) });
+
+  const [driveActionLoading, setDriveActionLoading] = useState(false);
+
+  const connectDrive = () => {
+    if (!activeCompany) return;
+    driveAuthorizationMutation.mutate({ companyId: activeCompany.id, origin: window.location.origin });
+  };
+
+  const saveDrivePreferences = (enabled: boolean, autoBackupEnabled: boolean) => {
+    if (!activeCompany) return;
+    drivePreferencesMutation.mutate({ companyId: activeCompany.id, enabled, autoBackupEnabled });
+  };
+
+  const createDriveBackup = () => {
+    if (!activeCompany) return;
+    driveBackupMutation.mutate({ companyId: activeCompany.id });
+  };
+
+  const restoreDriveBackup = async (backupId: number) => {
+    if (!activeCompany || driveRestoreMutation.isPending) return;
+    try {
+      const preview = await utils.ai.driveRestorePreview.fetch({ companyId: activeCompany.id, backupId });
+      const total = Object.values(preview.counts).reduce((sum, value) => sum + Number(value), 0);
+      if (!window.confirm(`Restaurar o snapshot de ${new Date(preview.exportedAt).toLocaleString("pt-BR")} com ${total} registros? Os dados atuais serão atualizados pelos registros correspondentes. Confirma?`)) return;
+      driveRestoreMutation.mutate({ companyId: activeCompany.id, backupId, confirmation: true });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível validar o backup.");
+    }
+  };
 
   // === CRIAR EMPRESA STATE ===
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -469,6 +505,7 @@ export default function Settings() {
             <TabsTrigger value="empresa">Empresa</TabsTrigger>
             <TabsTrigger value="documentos">Documentos</TabsTrigger>
             <TabsTrigger value="temas">Temas</TabsTrigger>
+            <TabsTrigger value="backup">Backup</TabsTrigger>
           </TabsList>
 
           {/* Empresa Tab */}
@@ -770,6 +807,25 @@ export default function Settings() {
             </Card>
           </TabsContent>
 
+          {/* Backup Tab */}
+          <TabsContent value="backup" className="space-y-6">
+            <Card className="border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Cloud className="w-5 h-5" /> Backup no Google Drive</CardTitle>
+                <CardDescription>Conecte a sua própria conta Google para guardar cópias versionadas do OrçaMaster.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                {!driveStatusQuery.data?.connected ? <div className="rounded-lg border border-dashed border-border bg-muted/30 p-5"><p className="font-medium">Google Drive ainda não conectado</p><p className="mt-1 text-sm text-muted-foreground">A autorização ocorre na conta Google escolhida por você. O OrçaMaster não recebe sua senha.</p><Button className="mt-4" onClick={connectDrive} disabled={!driveStatusQuery.data?.configured || driveAuthorizationMutation.isPending}><Cloud className="mr-2 h-4 w-4" />{driveAuthorizationMutation.isPending ? "Abrindo autorização..." : driveStatusQuery.data?.configured ? "Conectar minha conta Google" : "OAuth não configurado"}</Button></div> : <>
+                  <div className="flex flex-col gap-3 rounded-lg border border-emerald-200 bg-emerald-50/60 p-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-medium text-emerald-950">Drive conectado</p><p className="text-sm text-emerald-800">{driveStatusQuery.data.driveEmail ?? "Conta Google autorizada"}</p></div><Button variant="outline" onClick={() => saveDrivePreferences(false, false)} disabled={drivePreferencesMutation.isPending}><Unplug className="mr-2 h-4 w-4" />Desativar</Button></div>
+                  <div className="rounded-lg border border-border/70 p-4"><div className="flex items-start justify-between gap-4"><div><p className="font-medium">Backup automático em segundo plano</p><p className="mt-1 text-sm text-muted-foreground">Quando ligado, uma nova versão é enfileirada após alterações persistidas, sem bloquear a interface.</p></div><input aria-label="Ativar backup automático" type="checkbox" checked={Boolean(driveStatusQuery.data.autoBackupEnabled)} onChange={(event) => saveDrivePreferences(true, event.target.checked)} disabled={drivePreferencesMutation.isPending} className="mt-1 h-5 w-5 accent-primary" /></div></div>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-sm font-medium">Backup manual</p><p className="text-xs text-muted-foreground">Crie uma fotografia completa dos dados atuais agora.</p></div><Button onClick={createDriveBackup} disabled={driveBackupMutation.isPending}><Download className="mr-2 h-4 w-4" />{driveBackupMutation.isPending ? "Enviando..." : "Criar backup agora"}</Button></div>
+                  {driveStatusQuery.data.lastBackupAt && <p className="text-xs text-muted-foreground">Último backup concluído: {new Date(driveStatusQuery.data.lastBackupAt).toLocaleString("pt-BR")}</p>}
+                  {driveStatusQuery.data.lastError && <p className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">Último erro: {driveStatusQuery.data.lastError}</p>}
+                </>}
+                <div className="border-t border-border/70 pt-4"><div className="flex items-center justify-between"><div><p className="font-medium">Histórico de versões</p><p className="text-xs text-muted-foreground">Cada item é uma cópia pontual; não altere os arquivos manualmente no Drive.</p></div><Button variant="ghost" size="icon" onClick={() => driveBackupsQuery.refetch()} aria-label="Atualizar histórico"><RefreshCw className="h-4 w-4" /></Button></div>{driveBackupsQuery.data?.length ? <div className="mt-3 divide-y rounded-md border">{driveBackupsQuery.data.map((backup) => <div key={backup.id} className="flex items-center justify-between gap-3 p-3 text-sm"><span className="min-w-0 truncate">{backup.fileName}</span><span className={backup.status === "uploaded" ? "text-emerald-700" : backup.status === "failed" ? "text-destructive" : "text-muted-foreground"}>{backup.status}</span>{backup.status === "uploaded" && <Button variant="ghost" size="sm" onClick={() => restoreDriveBackup(backup.id)} disabled={driveRestoreMutation.isPending}>Restaurar</Button>}</div>)}</div> : <p className="mt-3 text-sm text-muted-foreground">Nenhum backup registrado ainda.</p>}</div>
+              </CardContent>
+            </Card>
+          </TabsContent>
           {/* Temas Tab */}
           <TabsContent value="temas" className="space-y-6">
             <Card className="border-0 shadow-sm">
