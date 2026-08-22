@@ -46,7 +46,7 @@
 - [x] Implementar fluxo de caixa
 - [x] Implementar gráficos de faturamento mensal
 - [x] Implementar relatório de inadimplência
-- [ ] Implementar exportação de relatórios (PDF e Excel)
+- [x] Implementar exportação de relatórios (PDF e Excel)
 
 ## Fase 7: Dashboard e Página Pública
 - [x] Implementar dashboard com indicadores financeiros
@@ -277,7 +277,7 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 
 
 ## Fase 25 - Continuação do roadmap confirmado pelo usuário
-- [ ] Fechar exportação de relatórios em formatos suportados pelo ambiente e validar impressão
+- [x] Fechar exportação de relatórios em formatos suportados pelo ambiente e validar impressão
 - [x] Implementar rastreamento de validações via QR Code com consentimento e isolamento por empresa
 - [ ] Implementar alertas transacionais por e-mail e notificações push somente com configuração explícita
 - [ ] Implementar recuperação de acesso e cadastro de empresa compatíveis com a autenticação atual
@@ -291,3 +291,13 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [x] Abrir e fechar painel de chat global com responsividade e acessibilidade
 - [x] Preservar histórico da conversa e confirmação explícita das ações no chat global
 - [x] Validar navegação, teclado, testes, TypeScript e build
+- [x] Implementar exportação explícita de relatórios em PDF usando somente dados reais de faturas e despesas
+- [x] Adicionar testes automatizados para exportação Excel, exportação PDF e impressão do relatório
+
+
+## Fase 27 - Redesign visual de orçamento, impressão e PDF
+- [x] Modernizar o cabeçalho do preview sem competir com a logo da empresa
+- [x] Melhorar hierarquia de textos, tabela, totais, condições e assinatura no preview responsivo
+- [x] Atualizar estilos de impressão para manter a composição elegante em papel
+- [x] Atualizar o gerador PDF com a mesma identidade visual e tratamento proporcional da logo
+- [x] Validar visualmente preview desktop/mobile, impressão, PDF, testes, TypeScript e build

@@ -58,10 +58,11 @@ interface QuotationPDFData {
 }
 
 const ORANGE = "#D8921B";
-const LIGHT_ORANGE = "#FBF1DD";
-const DARK = "#333333";
-const MUTED = "#6B6B6B";
-const LINE = "#B9B9B9";
+const NAVY = "#132238";
+const LIGHT_ORANGE = "#FFFDF8";
+const DARK = "#243247";
+const MUTED = "#64748B";
+const LINE = "#E5EAF0";
 const WHITE = "#FFFFFF";
 
 function fmtDate(date: string | Date | null | undefined): string {
@@ -107,7 +108,7 @@ async function loadImageBuffer(url?: string, storageKey?: string): Promise<Buffe
 
 function drawFooter(doc: PDFKit.PDFDocument, pageNumber: number, pageCount: number) {
   const y = doc.page.height - 34;
-  doc.fillColor(MUTED).font("Helvetica").fontSize(7).text("DA PLATAFORMA", 48, y);
+  doc.fillColor(MUTED).font("Helvetica").fontSize(7).text("OrçaMaster", 48, y);
   doc.fillColor("#E5484D").rect(112, y + 1, 8, 6).fill();
   doc.fillColor("#3B82F6").rect(121, y + 1, 8, 6).fill();
   doc.fillColor("#F2C94C").rect(130, y + 1, 8, 6).fill();
@@ -115,8 +116,8 @@ function drawFooter(doc: PDFKit.PDFDocument, pageNumber: number, pageCount: numb
 }
 
 function drawSectionTitle(doc: PDFKit.PDFDocument, title: string, x: number, y: number, width: number) {
-  doc.fillColor(DARK).font("Helvetica-Bold").fontSize(8).text(title.toUpperCase(), x, y, { width });
-  doc.strokeColor(ORANGE).lineWidth(0.7).moveTo(x, y + 12).lineTo(x + width, y + 12).stroke();
+  doc.fillColor(MUTED).font("Helvetica-Bold").fontSize(8).text(title.toUpperCase(), x, y, { width, characterSpacing: 0.4 });
+  doc.strokeColor("#E8D2A4").lineWidth(0.8).moveTo(x, y + 13).lineTo(x + width, y + 13).stroke();
 }
 
 function drawTableHeader(doc: PDFKit.PDFDocument, x: number, y: number, width: number) {
@@ -127,7 +128,8 @@ function drawTableHeader(doc: PDFKit.PDFDocument, x: number, y: number, width: n
     { label: "PREÇO/UN", width: width * 0.12, align: "right" as const },
     { label: "VALOR", width: width * 0.12, align: "right" as const },
   ];
-  doc.fillColor(ORANGE).rect(x, y, width, 18).fill();
+  doc.fillColor(NAVY).roundedRect(x, y, width, 18, 2).fill();
+  doc.fillColor(ORANGE).rect(x, y, width, 2).fill();
   let cursor = x;
   doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(7);
   for (const column of columns) {
@@ -178,7 +180,7 @@ function drawHeader(doc: PDFKit.PDFDocument, data: QuotationPDFData, logo?: Buff
     doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(22).text("OM", left + 12, y + 15);
   }
 
-  doc.fillColor(DARK).font("Helvetica-Bold").fontSize(9).text(data.companyName, left, y + 76, { width: 245 });
+  doc.fillColor(NAVY).font("Helvetica-Bold").fontSize(9).text(data.companyName, left, y + 76, { width: 245 });
   doc.font("Helvetica").fontSize(8);
   const companyLines = [
     data.companyAddress ? `End.: ${data.companyAddress}${data.companyCity ? ` - ${data.companyCity}` : ""}${data.companyState ? ` - ${data.companyState}` : ""}` : undefined,
@@ -189,10 +191,11 @@ function drawHeader(doc: PDFKit.PDFDocument, data: QuotationPDFData, logo?: Buff
   companyLines.forEach((line, index) => doc.text(line, left, y + 89 + index * 10, { width: 250 }));
 
   const statusX = left + 210;
-  doc.lineWidth(0.8).strokeColor("#999").rect(statusX, y + 2, 76, 27).stroke();
-  doc.fillColor("#777").font("Helvetica").fontSize(9).text(statusLabel(data.status), statusX + 4, y + 11, { width: 68, align: "center" });
-  doc.fillColor(DARK).font("Helvetica").fontSize(24).text("Orçamento", left + 285, y + 4, { width: pageWidth - 285, align: "right" });
-  doc.font("Helvetica-Bold").fontSize(8).text(`# ${data.number}`, left + 285, y + 37, { width: pageWidth - 285, align: "right" });
+  doc.fillColor("#F5F7FA").roundedRect(statusX, y + 2, 76, 27, 13).fill();
+  doc.fillColor(MUTED).font("Helvetica-Bold").fontSize(8).text(statusLabel(data.status), statusX + 4, y + 11, { width: 68, align: "center" });
+  doc.fillColor(NAVY).font("Helvetica-Bold").fontSize(24).text("Orçamento", left + 285, y + 4, { width: pageWidth - 285, align: "right" });
+  doc.font("Helvetica-Bold").fontSize(8).fillColor(MUTED).text(`# ${data.number}`, left + 285, y + 37, { width: pageWidth - 285, align: "right" });
+  doc.strokeColor(ORANGE).lineWidth(1.4).moveTo(left + 285, y + 53).lineTo(left + pageWidth, y + 53).stroke();
 
   return y + 145;
 }
@@ -256,6 +259,8 @@ export async function generateQuotationPDF(data: QuotationPDFData): Promise<Buff
 
       const totalsX = left + pageWidth * 0.58;
       const totalsWidth = pageWidth * 0.42;
+      const totalsHeight = data.discount && data.discount > 0 ? 76 : 58;
+      doc.fillColor(LIGHT_ORANGE).roundedRect(totalsX - 10, y - 10, totalsWidth + 10, totalsHeight, 7).fillAndStroke(LINE, LINE);
       doc.font("Helvetica").fontSize(8).fillColor(DARK).text("Subtotal", totalsX, y, { width: totalsWidth * 0.55, align: "right" });
       doc.text(fmtCurrency(data.subtotal), totalsX + totalsWidth * 0.55, y, { width: totalsWidth * 0.45, align: "right" });
       y += 15;
@@ -264,9 +269,9 @@ export async function generateQuotationPDF(data: QuotationPDFData): Promise<Buff
         doc.text(`- ${fmtCurrency(data.discount)}`, totalsX + totalsWidth * 0.55, y, { width: totalsWidth * 0.45, align: "right" });
         y += 15;
       }
-      doc.fillColor(DARK).font("Helvetica-Bold").text("Total", totalsX, y, { width: totalsWidth * 0.55, align: "right" });
+      doc.fillColor(NAVY).font("Helvetica-Bold").text("Total", totalsX, y, { width: totalsWidth * 0.55, align: "right" });
       doc.text(`R$ ${fmtCurrency(data.total)}`, totalsX + totalsWidth * 0.55, y, { width: totalsWidth * 0.45, align: "right" });
-      doc.strokeColor(ORANGE).lineWidth(0.7).moveTo(totalsX, y + 14).lineTo(totalsX + totalsWidth, y + 14).stroke();
+      doc.strokeColor(ORANGE).lineWidth(1).moveTo(totalsX, y + 14).lineTo(totalsX + totalsWidth, y + 14).stroke();
       y += 36;
 
       if (data.paymentConditions || data.paymentTerms) {
@@ -283,6 +288,7 @@ export async function generateQuotationPDF(data: QuotationPDFData): Promise<Buff
 
       if (data.pixKey) {
         const qrY = y + 33;
+        doc.fillColor("#FAFBFC").roundedRect(left, qrY - 8, 320, 96, 7).fillAndStroke(LINE, LINE);
         try {
           const qrDataUrl = await QRCode.toDataURL(data.pixKey, { width: 110, margin: 1, errorCorrectionLevel: "M" });
           const qrBuffer = Buffer.from(qrDataUrl.split(",")[1], "base64");
@@ -290,7 +296,7 @@ export async function generateQuotationPDF(data: QuotationPDFData): Promise<Buff
         } catch {
           doc.strokeColor(LINE).rect(left, qrY, 78, 78).stroke();
         }
-        doc.fillColor(DARK).font("Helvetica-Bold").fontSize(8).text("DADOS PARA PAGAMENTO", left + 88, qrY + 4);
+        doc.fillColor(NAVY).font("Helvetica-Bold").fontSize(8).text("DADOS PARA PAGAMENTO", left + 88, qrY + 4);
         doc.font("Helvetica").fontSize(7);
         if (data.pixHolder) doc.text(`Titular: ${data.pixHolder}`, left + 88, qrY + 18, { width: 220 });
         if (data.pixBank) doc.text(`Banco: ${data.pixBank}`, left + 88, qrY + 30, { width: 220 });
@@ -312,8 +318,8 @@ export async function generateQuotationPDF(data: QuotationPDFData): Promise<Buff
       }
 
       const signatureY = Math.min(Math.max(y + 10, doc.page.height - 112), doc.page.height - 75);
-      doc.strokeColor(DARK).lineWidth(0.5).moveTo(left + 20, signatureY).lineTo(left + pageWidth * 0.58, signatureY).stroke();
-      doc.fillColor(DARK).font("Helvetica").fontSize(8).text(`Ass. ${data.companyName}`, left + 20, signatureY + 7, { width: pageWidth * 0.58 - 20, align: "center" });
+      doc.strokeColor(NAVY).lineWidth(0.6).moveTo(left + 20, signatureY).lineTo(left + pageWidth * 0.58, signatureY).stroke();
+      doc.fillColor(MUTED).font("Helvetica").fontSize(8).text(`Ass. ${data.companyName}`, left + 20, signatureY + 7, { width: pageWidth * 0.58 - 20, align: "center" });
       drawFooter(doc, 2, 2);
       doc.end();
     } catch (error) {

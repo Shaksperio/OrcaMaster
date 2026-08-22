@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { TrpcContext } from "./_core/context";
 
 const { dbMocks, prepareAction, confirmAction } = vi.hoisted(() => ({
-  dbMocks: { getCompanyById: vi.fn(), getUserCompanyRole: vi.fn() },
+  dbMocks: { getCompanyById: vi.fn(), getUserCompanyRole: vi.fn(), getProductById: vi.fn(), getCompanyQuotationItems: vi.fn(), createPriceSuggestion: vi.fn(), getCompanyQuotations: vi.fn() },
   prepareAction: vi.fn(),
   confirmAction: vi.fn(),
 }));
@@ -27,6 +27,10 @@ describe("Procedures ai.prepareAction e ai.confirmAction", () => {
     vi.clearAllMocks();
     dbMocks.getCompanyById.mockResolvedValue({ id: 42, userId: 1, name: "Empresa teste" });
     dbMocks.getUserCompanyRole.mockResolvedValue(undefined);
+    dbMocks.getProductById.mockResolvedValue({ id: 9, companyId: 42, name: "Produto real" });
+    dbMocks.getCompanyQuotationItems.mockResolvedValue([{ item: { productId: 9, unitPrice: "100.00" } }, { item: { productId: 9, unitPrice: "140.00" } }, { item: { productId: 9, unitPrice: "120.00" } }]);
+    dbMocks.createPriceSuggestion.mockResolvedValue({ id: 5 });
+    dbMocks.getCompanyQuotations.mockResolvedValue([{ status: "aprovado", total: "500.00" }, { status: "rascunho", total: "100.00" }]);
     prepareAction.mockResolvedValue({ confirmationToken: "a".repeat(64), preview: { action: "product.update", payload: { id: 9, price: "100" } } });
     confirmAction.mockResolvedValue({ action: "product.update", result: { id: 9 } });
   });
@@ -52,5 +56,27 @@ describe("Procedures ai.prepareAction e ai.confirmAction", () => {
     await appRouter.createCaller(context()).ai.prepareAction({ companyId: 42, action: "expense.delete", payload: { id: 3 } });
     expect(prepareAction).toHaveBeenNthCalledWith(1, 42, 1, "company.update", { name: "Nova empresa" });
     expect(prepareAction).toHaveBeenNthCalledWith(2, 42, 1, "expense.delete", { id: 3 });
+  });
+});
+
+
+describe("Procedures analíticas do Assistente", () => {
+  it("calcula sugestão de preço pela mediana dos itens reais da empresa", async () => {
+    dbMocks.getCompanyById.mockResolvedValue({ id: 42, userId: 1, name: "Empresa teste" });
+    dbMocks.getUserCompanyRole.mockResolvedValue(undefined);
+    dbMocks.getProductById.mockResolvedValue({ id: 9, companyId: 42, name: "Produto real" });
+    dbMocks.getCompanyQuotationItems.mockResolvedValue([{ item: { productId: 9, unitPrice: "100.00" } }, { item: { productId: 9, unitPrice: "140.00" } }, { item: { productId: 9, unitPrice: "120.00" } }]);
+    dbMocks.createPriceSuggestion.mockResolvedValue({ id: 5 });
+    const result = await appRouter.createCaller(context()).ai.priceSuggestion({ companyId: 42, productId: 9 });
+    expect(result).toMatchObject({ suggestedPrice: "120.00", basedOnQuotations: 3, source: "itens reais de orçamentos" });
+  });
+
+  it("resume padrões pelos status e totais reais dos orçamentos", async () => {
+    dbMocks.getCompanyById.mockResolvedValue({ id: 42, userId: 1, name: "Empresa teste" });
+    dbMocks.getUserCompanyRole.mockResolvedValue(undefined);
+    dbMocks.getCompanyQuotations.mockResolvedValue([{ status: "aprovado", total: "500.00" }, { status: "rascunho", total: "100.00" }]);
+    const result = await appRouter.createCaller(context()).ai.quotationPatterns({ companyId: 42 });
+    expect(result).toMatchObject({ totalQuotations: 2, totalValue: "600.00", averageValue: "300.00", source: "orçamentos reais da empresa" });
+    expect(result.byStatus.aprovado).toEqual({ count: 1, total: 500 });
   });
 });

@@ -100,6 +100,30 @@ export const appRouter = router({
           throw new TRPCError({ code: "BAD_REQUEST", message: error instanceof Error ? error.message : "Não foi possível confirmar a ação." });
         }
       }),
+    priceSuggestion: protectedProcedure
+      .input(z.object({ companyId: z.number().int().positive(), productId: z.number().int().positive() }))
+      .query(async ({ input, ctx }) => {
+        await checkCompanyAccess(ctx.user.id, input.companyId);
+        const product = await db.getProductById(input.productId);
+        if (!product || product.companyId !== input.companyId) throw new TRPCError({ code: "NOT_FOUND", message: "Produto não encontrado nesta empresa." });
+        const rows = await db.getCompanyQuotationItems(input.companyId);
+        const values = rows.filter(({ item }) => item.productId === input.productId && Number(item.unitPrice) > 0).map(({ item }) => Number(item.unitPrice)).sort((a, b) => a - b);
+        if (!values.length) return null;
+        const middle = Math.floor(values.length / 2);
+        const median = values.length % 2 ? values[middle] : (values[middle - 1] + values[middle]) / 2;
+        const confidence = Math.min(1, 0.5 + values.length / 20);
+        const saved = await db.createPriceSuggestion({ companyId: input.companyId, productId: input.productId, suggestedPrice: median.toFixed(2), basedOnQuotations: values.length, confidence: confidence.toFixed(2) });
+        return { id: Number(saved.id), productId: input.productId, suggestedPrice: median.toFixed(2), basedOnQuotations: values.length, confidence: confidence.toFixed(2), source: "itens reais de orçamentos" };
+      }),
+    quotationPatterns: protectedProcedure
+      .input(z.object({ companyId: z.number().int().positive() }))
+      .query(async ({ input, ctx }) => {
+        await checkCompanyAccess(ctx.user.id, input.companyId);
+        const quotations = await db.getCompanyQuotations(input.companyId);
+        const byStatus = quotations.reduce<Record<string, { count: number; total: number }>>((acc, quotation: any) => { const status = String(quotation.status); acc[status] ||= { count: 0, total: 0 }; acc[status].count += 1; acc[status].total += Number(quotation.total || 0); return acc; }, {});
+        const total = quotations.reduce((sum: number, quotation: any) => sum + Number(quotation.total || 0), 0);
+        return { totalQuotations: quotations.length, totalValue: total.toFixed(2), averageValue: quotations.length ? (total / quotations.length).toFixed(2) : "0.00", byStatus, source: "orçamentos reais da empresa" };
+      }),
   }),
 
   publicDocuments: router({

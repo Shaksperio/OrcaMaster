@@ -176,3 +176,30 @@ export function registerPdfRoutes(app: Express) {
     }
   });
 }
+
+
+import { generateFinanceReportPDF } from "./report-pdf";
+
+export function registerReportPdfRoutes(app: Express) {
+  app.get("/api/reports/:companyId/pdf", async (req: Request, res: Response) => {
+    try {
+      const user = await sdk.authenticateRequest(req);
+      if (!user) { res.status(401).json({ error: "Não autenticado" }); return; }
+      const companyId = Number(req.params.companyId);
+      if (!Number.isInteger(companyId) || companyId <= 0) { res.status(400).json({ error: "Empresa inválida" }); return; }
+      const company = await db.getCompanyById(companyId);
+      const member = await db.getUserCompanyRole(user.id, companyId);
+      if (!company || (company.userId !== user.id && !member)) { res.status(403).json({ error: "Sem acesso a esta empresa" }); return; }
+      const [invoices, expenses] = await Promise.all([db.getCompanyInvoices(companyId), db.getCompanyExpenses(companyId)]);
+      const rows = [...invoices.map((item: any) => ({ type: "Fatura", identifier: String(item.number ?? item.id), status: String(item.status ?? ""), value: Number(item.total ?? 0) })), ...expenses.map((item: any) => ({ type: "Despesa", identifier: String(item.description ?? item.id), status: String(item.status ?? ""), value: Number(item.amount ?? item.total ?? 0) }))];
+      const pdfBuffer = await generateFinanceReportPDF({ companyName: company.name, companyId, rows, generatedAt: new Date() });
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `attachment; filename="relatorio-financeiro-${companyId}.pdf"`);
+      res.setHeader("Content-Length", pdfBuffer.length);
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error("Error generating finance report PDF:", error);
+      res.status(500).json({ error: "Erro ao gerar relatório financeiro" });
+    }
+  });
+}

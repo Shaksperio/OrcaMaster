@@ -1,6 +1,6 @@
 import { eq, and, desc, asc, sql, count, isNotNull, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, companies, clients, products, productPriceHistory, professionals, suppliers, quotations, quotationItems, invoices, invoiceItems, companyMembers, themes, expenses, documentVersions, assistantActionConfirmations, qrCodeValidations } from "../drizzle/schema";
+import { InsertUser, users, companies, clients, products, productPriceHistory, professionals, suppliers, quotations, quotationItems, invoices, invoiceItems, companyMembers, themes, expenses, documentVersions, assistantActionConfirmations, qrCodeValidations, priceSuggestions } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -604,4 +604,24 @@ export async function countQRCodeValidations(documentType: "quotation" | "invoic
   if (!db) return 0;
   const result = await db.select({ total: count() }).from(qrCodeValidations).where(and(eq(qrCodeValidations.documentType, documentType), eq(qrCodeValidations.documentId, documentId)));
   return Number(result[0]?.total ?? 0);
+}
+
+
+export async function getCompanyQuotationItems(companyId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select({ item: quotationItems, quotation: quotations }).from(quotationItems).innerJoin(quotations, eq(quotationItems.quotationId, quotations.id)).where(eq(quotations.companyId, companyId)).orderBy(desc(quotations.createdAt));
+}
+
+export async function createPriceSuggestion(data: typeof priceSuggestions.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(priceSuggestions).values(data);
+  return { id: result[0].insertId };
+}
+
+export async function getCompanyPriceSuggestions(companyId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select({ suggestion: priceSuggestions, product: products }).from(priceSuggestions).innerJoin(products, eq(priceSuggestions.productId, products.id)).where(eq(priceSuggestions.companyId, companyId)).orderBy(desc(priceSuggestions.createdAt));
 }
