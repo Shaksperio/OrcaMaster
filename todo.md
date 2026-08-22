@@ -342,7 +342,7 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [ ] Validar testes, TypeScript, build e execução das principais telas
 - [ ] Verificar sincronização write-through e cobertura do espelho Firebase sem alterar dados
 - [ ] Documentar limites de restauração e procedimentos de recuperação
-- [ ] Salvar checkpoint final do código no Manus e sincronizar o repositório GitHub
+- [x] Salvar checkpoint final do código no Manus e sincronizar o repositório GitHub
 
 ## Fase 37 - Backup Google Drive do usuário
 - [x] Usar OAuth para conectar a própria conta Google do usuário, sem senha e sem conta central do OrçaMaster

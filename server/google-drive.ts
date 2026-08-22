@@ -65,6 +65,7 @@ export async function listDriveBackups(companyId: number) {
   return database.select({ id: googleDriveBackups.id, driveFileId: googleDriveBackups.driveFileId, fileName: googleDriveBackups.fileName, checksum: googleDriveBackups.checksum, byteSize: googleDriveBackups.byteSize, status: googleDriveBackups.status, errorMessage: googleDriveBackups.errorMessage, createdAt: googleDriveBackups.createdAt, completedAt: googleDriveBackups.completedAt }).from(googleDriveBackups).where(eq(googleDriveBackups.companyId, companyId)).orderBy(desc(googleDriveBackups.createdAt)).limit(50);
 }
 export async function setDrivePreferences(companyId: number, enabled: boolean, autoBackupEnabled: boolean) {
+  if (autoBackupEnabled && !enabled) throw new Error("O backup automático exige uma conexão Drive ativa.");
   const database = await getDb(); if (!database) throw new Error("Banco de dados indisponível.");
   await database.update(googleDriveConnections).set({ enabled, autoBackupEnabled, lastError: null }).where(eq(googleDriveConnections.companyId, companyId));
   return getDriveConnection(companyId);
@@ -135,7 +136,13 @@ export async function previewCompanyBackup(companyId: number, backupId: number) 
 }
 export async function restoreCompanyBackup(companyId: number, backupId: number) {
   const payload = await downloadBackupPayload(companyId, backupId); const database = await getDb(); if (!database) throw new Error("Banco de dados indisponível.");
-  const upsert = async (table: any, rows: any[]) => { for (const row of rows) { const set = Object.fromEntries(Object.keys(row).filter((key) => key !== "id" && key !== "createdAt").map((key) => [key, row[key]])); await database.insert(table).values(row).onDuplicateKeyUpdate({ set }); } };
+  const companyRows = [payload.clients, payload.products, payload.professionals, payload.suppliers, payload.quotations, payload.invoices, payload.expenses, payload.themes];
+  if (companyRows.some((rows: any[]) => rows.some((row) => Number(row.companyId) !== companyId))) throw new Error("Snapshot contém registros de outra empresa.");
+  const quotationIds = new Set(payload.quotations.map((row: any) => Number(row.id))); const invoiceIds = new Set(payload.invoices.map((row: any) => Number(row.id)));
+  if (payload.quotationItems.some((row: any) => !quotationIds.has(Number(row.quotationId))) || payload.invoiceItems.some((row: any) => !invoiceIds.has(Number(row.invoiceId)))) throw new Error("Snapshot contém itens sem documento pai válido.");
+  if (payload.companyMembers.some((row: any) => Number(row.companyId) !== companyId)) throw new Error("Snapshot contém membros de outra empresa.");
+  const normalizeRow = (row: any) => Object.fromEntries(Object.entries(row).map(([name, value]) => [name, typeof value === "string" && /(At|Date)$/.test(name) && !Number.isNaN(Date.parse(value)) ? new Date(value) : value]));
+  const upsert = async (table: any, rows: any[]) => { for (const original of rows) { const row = normalizeRow(original); const set = Object.fromEntries(Object.keys(row).filter((key) => key !== "id" && key !== "createdAt").map((key) => [key, row[key]])); await database.insert(table).values(row).onDuplicateKeyUpdate({ set }); } };
   await database.update(companies).set({ name: payload.company.name, document: payload.company.document, email: payload.company.email, phone: payload.company.phone, address: payload.company.address, city: payload.company.city, state: payload.company.state, zipCode: payload.company.zipCode, logoUrl: payload.company.logoUrl, logoStorageKey: payload.company.logoStorageKey, currency: payload.company.currency, language: payload.company.language, taxRegime: payload.company.taxRegime }).where(eq(companies.id, companyId));
   await upsert(clients, payload.clients); await upsert(products, payload.products); await upsert(professionals, payload.professionals); await upsert(suppliers, payload.suppliers); await upsert(quotations, payload.quotations); await upsert(quotationItems, payload.quotationItems); await upsert(invoices, payload.invoices); await upsert(invoiceItems, payload.invoiceItems); await upsert(expenses, payload.expenses); await upsert(themes, payload.themes); await upsert(companyMembers, payload.companyMembers);
   const { syncFullCompany } = await import("./firebase-sync");
