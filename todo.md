@@ -16,7 +16,7 @@
 - [x] Implementar CRUD de clientes (CPF/CNPJ, endereço, contato) - UI + procedures (sem histórico)
 - [x] Implementar CRUD de produtos/serviços (preço, SKU, estoque, categoria) - UI + procedures
 - [x] Implementar CRUD de profissionais/mão de obra (valor hora, comissão) - UI + procedures
-- [ ] Implementar CRUD de fornecedores - UI
+- [x] Implementar CRUD de fornecedores - UI + procedures protegidas, autorização por empresa, espelho Firebase e testes de contrato
 
 ## Fase 4: Orçamentos e Faturas
 - [x] Implementar UI de orçamentos com listagem (empresa ativa, sem placeholders)
@@ -212,3 +212,9 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [x] Adicionar chat contextual com respostas textuais contextualizadas e confirmação antes de ações mutáveis
 - [x] Implementar limites de segurança, privacidade, custos, timeout e fallback controlado por erro transparente, com redação de dados sensíveis e testes de timeout/concorrência
 - [x] Adicionar testes do assistente, executar pnpm test --run, pnpm check e pnpm build após os controles finais
+
+### Reforço do CRUD de fornecedores
+- [x] Adicionar tratamento de erro explícito nas mutations de fornecedores com feedback na UI
+- [x] Criar testes das procedures suppliers para autorização por empresa e operações CRUD
+- [x] Criar teste explícito do espelho Firebase para criação, atualização e remoção de fornecedor
+- [x] Executar regressão completa, TypeScript e build após o CRUD de fornecedores

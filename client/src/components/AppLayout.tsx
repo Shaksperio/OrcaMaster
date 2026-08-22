@@ -2,7 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, LogOut, Settings, Bell, FileText, Users, Package, Briefcase, BarChart3, Home, Sparkles } from "lucide-react";
+import { Menu, LogOut, Settings, Bell, FileText, Users, Package, Briefcase, BarChart3, Home, Sparkles, Truck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
@@ -18,6 +18,7 @@ const navigationItems = [
   { label: "Clientes", href: "/customers", icon: Users },
   { label: "Produtos", href: "/products", icon: Package },
   { label: "Profissionais", href: "/professionals", icon: Briefcase },
+  { label: "Fornecedores", href: "/suppliers", icon: Truck },
   { label: "Assistente IA", href: "/assistant", icon: Sparkles },
 ];
 

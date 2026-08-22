@@ -202,7 +202,6 @@ export const appRouter = router({
         city: z.string().optional(),
         state: z.string().optional(),
         zipCode: z.string().optional(),
-        notes: z.string().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         const { isOwner, member } = await checkCompanyAccess(ctx.user.id, input.companyId);
@@ -345,6 +344,70 @@ export const appRouter = router({
         const profId = (professional as any).insertId || (professional as any).id;
         if (profId) syncToFirebase("professional", profId, { ...input, hourlyRate, dailyRate, commissionPercentage }, { companyId: input.companyId });
         return professional;
+      }),
+  }),
+
+  // Supplier procedures
+  suppliers: router({
+    list: protectedProcedure
+      .input(z.object({ companyId: z.number().int().positive() }))
+      .query(async ({ input, ctx }) => {
+        await checkCompanyAccess(ctx.user.id, input.companyId);
+        return db.getCompanySuppliers(input.companyId);
+      }),
+    create: protectedProcedure
+      .input(z.object({
+        companyId: z.number().int().positive(),
+        name: z.string().min(1),
+        document: z.string().optional(),
+        email: z.string().email().optional(),
+        phone: z.string().optional(),
+        address: z.string().optional(),
+        city: z.string().optional(),
+        state: z.string().max(2).optional(),
+        zipCode: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const { isOwner, member } = await checkCompanyAccess(ctx.user.id, input.companyId);
+        if (!checkRolePermission(member?.role, isOwner, ["admin", "gerente"])) throw new TRPCError({ code: "FORBIDDEN" });
+        const supplier = await db.createSupplier(input);
+        const supplierId = (supplier as any).insertId || (supplier as any).id;
+        if (supplierId) syncToFirebase("supplier", supplierId, { ...input, id: supplierId }, { companyId: input.companyId });
+        return supplier;
+      }),
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        companyId: z.number().int().positive(),
+        name: z.string().min(1).optional(),
+        document: z.string().optional(),
+        email: z.string().email().optional(),
+        phone: z.string().optional(),
+        address: z.string().optional(),
+        city: z.string().optional(),
+        state: z.string().max(2).optional(),
+        zipCode: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const { isOwner, member } = await checkCompanyAccess(ctx.user.id, input.companyId);
+        if (!checkRolePermission(member?.role, isOwner, ["admin", "gerente"])) throw new TRPCError({ code: "FORBIDDEN" });
+        const current = await db.getSupplierById(input.id);
+        if (!current || current.companyId !== input.companyId) throw new TRPCError({ code: "NOT_FOUND" });
+        const { id, companyId, ...data } = input;
+        const supplier = await db.updateSupplier(id, data);
+        syncToFirebase("supplier", id, { ...data, id }, { companyId });
+        return supplier;
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number().int().positive(), companyId: z.number().int().positive() }))
+      .mutation(async ({ input, ctx }) => {
+        const { isOwner, member } = await checkCompanyAccess(ctx.user.id, input.companyId);
+        if (!checkRolePermission(member?.role, isOwner, ["admin", "gerente"])) throw new TRPCError({ code: "FORBIDDEN" });
+        const current = await db.getSupplierById(input.id);
+        if (!current || current.companyId !== input.companyId) throw new TRPCError({ code: "NOT_FOUND" });
+        await db.deleteSupplier(input.id);
+        syncToFirebase("supplier", input.id, null, { companyId: input.companyId });
+        return { success: true };
       }),
   }),
 

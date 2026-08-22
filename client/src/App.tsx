@@ -19,6 +19,7 @@ import Customers from "./pages/Customers";
 import Products from "./pages/Products";
 import Professionals from "./pages/Professionals";
 import Assistant from "./pages/Assistant";
+import Suppliers from "./pages/Suppliers";
 import Settings from "./pages/Settings";
 import PublicValidation from "./pages/PublicValidation";
 import { Loader2 } from "lucide-react";
@@ -67,6 +68,7 @@ function Router() {
       <Route path={"/customers"} component={Customers} />
       <Route path={"/products"} component={Products} />
       <Route path={"/professionals"} component={Professionals} />
+      <Route path={"/suppliers"} component={Suppliers} />
       <Route path={"/assistant"} component={Assistant} />
       <Route path={"/settings"} component={Settings} />
       <Route path={"/404"} component={NotFound} />
