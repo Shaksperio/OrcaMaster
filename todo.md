@@ -44,7 +44,7 @@
 - [x] Implementar controle de recebimentos (parciais, parcelados, atrasados)
 - [x] Implementar contas a pagar
 - [x] Implementar fluxo de caixa
-- [ ] Implementar gráficos de faturamento mensal
+- [x] Implementar gráficos de faturamento mensal
 - [ ] Implementar relatório de inadimplência
 - [ ] Implementar exportação de relatórios (PDF e Excel)
 
@@ -264,9 +264,11 @@ Nota: Dados externos devem ser exibidos como resultados de pesquisa e não como 
 - [x] Aplicar design system global com azul royal, superfícies claras, tipografia legível e estados semânticos discretos
 - [x] Refinar sidebar responsiva, navegação mobile, cabeçalho e ações contextuais
 - [x] Redesenhar Dashboard com indicadores, ações rápidas e atividade recente usando dados reais
-- [ ] Refinar CRUDs de clientes, produtos, fornecedores, orçamentos, faturas e financeiro com busca, filtros e estados vazios
+- [x] Refinar CRUDs de clientes, produtos, fornecedores, orçamentos, faturas e financeiro com busca, filtros e estados vazios
 - [x] Aprimorar editor, detalhes, preview, impressão e fluxo de orçamentos preservando procedures e integrações
 - [x] Validar responsividade desktop/mobile, acessibilidade, testes, TypeScript e build
 - [x] Definir e aplicar matriz explícita de permissões por categoria de ação e papel, com testes correspondentes
 - [x] Adicionar testes tRPC para bloquear membros não proprietários em prepareAction e confirmAction
 - [x] Adicionar teste de ação destrutiva confirmada validando execução e auditoria
+- [x] Refinar e validar explicitamente QuotationPreview.tsx e o fluxo de impressão após o novo design system
+- [x] Adicionar validação específica de acessibilidade nas telas atualizadas, incluindo foco visível, labels/aria e navegação por teclado

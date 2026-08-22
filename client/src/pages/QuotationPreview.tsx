@@ -80,10 +80,10 @@ export default function QuotationPreview() {
   };
 
   if (isLoading) {
-    return <AppLayout><div className="flex h-96 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-[#D8921B]" /></div></AppLayout>;
+    return <AppLayout><div className="flex min-h-96 items-center justify-center" role="status" aria-label="Carregando orçamento"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></AppLayout>;
   }
   if (error || !data) {
-    return <AppLayout><div className="p-8 text-center"><p className="text-red-600">Erro ao carregar orçamento</p><Button variant="outline" onClick={() => navigate("/quotations")} className="mt-4">Voltar</Button></div></AppLayout>;
+    return <AppLayout><div className="mx-auto max-w-xl px-4 py-16 text-center"><p className="font-medium text-destructive">Erro ao carregar orçamento</p><Button variant="outline" onClick={() => navigate("/quotations")} className="mt-4">Voltar</Button></div></AppLayout>;
   }
 
   const companyAddress = [company?.address, company?.city, company?.state].filter(Boolean).join(" - ");
@@ -91,18 +91,18 @@ export default function QuotationPreview() {
 
   return (
     <AppLayout>
-      <div className="print:hidden flex flex-wrap items-center justify-between gap-3 p-4 md:p-6">
+      <div className="print:hidden mx-auto flex w-full max-w-[1440px] flex-wrap items-center justify-between gap-3 px-4 py-5 sm:px-6 lg:px-8">
         <Button variant="ghost" size="sm" onClick={() => navigate("/quotations")} className="gap-2"><ArrowLeft className="h-4 w-4" />Voltar</Button>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" onClick={handlePrint} className="gap-2"><Printer className="h-4 w-4" />Imprimir</Button>
           <Button variant="outline" size="sm" onClick={handleEmail} className="gap-2"><Mail className="h-4 w-4" />E-mail</Button>
           <Button variant="outline" size="sm" onClick={handleWhatsApp} className="gap-2 border-green-600 text-green-700 hover:bg-green-50"><MessageCircle className="h-4 w-4" />WhatsApp</Button>
-          <Button size="sm" onClick={handleDownloadPdf} className="gap-2 bg-[#D8921B] text-white hover:bg-[#B97812]"><Download className="h-4 w-4" />Gerar PDF</Button>
+          <Button size="sm" onClick={handleDownloadPdf} className="gap-2 bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"><Download className="h-4 w-4" />Gerar PDF</Button>
         </div>
       </div>
 
       <div className="flex justify-center pb-8 px-2 sm:px-4 print:p-0 overflow-x-auto">
-        <div ref={printRef} data-print-target className="quotation-document w-[210mm] min-w-[210mm] bg-white text-[#333] shadow-lg print:max-w-none print:shadow-none" style={{ fontFamily: "Arial, Helvetica, sans-serif" }}>
+        <div ref={printRef} data-print-target data-testid="quotation-print-target" aria-label="Pré-visualização imprimível do orçamento" className="quotation-document w-[210mm] min-w-[210mm] bg-white text-[#333] shadow-lg print:max-w-none print:shadow-none" style={{ fontFamily: "Arial, Helvetica, sans-serif" }}>
           <section className="quotation-page min-h-[297mm] p-[14mm] print:min-h-0">
             <header className="relative min-h-[44mm]">
               {company?.logoUrl ? <img src={company.logoUrl} alt="Logo da empresa" className="absolute left-0 top-0 h-[25mm] w-[30mm] object-contain object-left" /> : <div className="absolute left-0 top-0 flex h-[24mm] w-[28mm] items-center justify-center rounded bg-[#D8921B] text-2xl font-bold text-white">OM</div>}

@@ -115,6 +115,7 @@ describe("QuotationPreview — ações do documento", () => {
     render(<QuotationPreview />);
 
     expect(document.querySelector("[data-print-target]")).not.toBeNull();
+    expect(screen.getByTestId("quotation-print-target").getAttribute("aria-label")).toBe("Pré-visualização imprimível do orçamento");
     expect(document.querySelector("style")?.textContent).toContain("@media print");
     expect(document.querySelector("style")?.textContent).toContain("[data-print-target]");
 

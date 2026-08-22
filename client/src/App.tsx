@@ -21,6 +21,7 @@ import Professionals from "./pages/Professionals";
 import Assistant from "./pages/Assistant";
 import Suppliers from "./pages/Suppliers";
 import Settings from "./pages/Settings";
+import Reports from "./pages/Reports";
 import PublicValidation from "./pages/PublicValidation";
 import { Loader2 } from "lucide-react";
 
@@ -65,6 +66,7 @@ function Router() {
       <Route path={"/invoices/new"} component={CreateInvoice} />
       <Route path={"/invoices"} component={Invoices} />
       <Route path={"/expenses"} component={Expenses} />
+      <Route path={"/reports"} component={Reports} />
       <Route path={"/customers"} component={Customers} />
       <Route path={"/products"} component={Products} />
       <Route path={"/professionals"} component={Professionals} />

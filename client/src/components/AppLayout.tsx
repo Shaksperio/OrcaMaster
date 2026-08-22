@@ -17,6 +17,7 @@ import {
   PanelLeft,
   Receipt,
   Settings2,
+  ChartNoAxesCombined,
   Sparkles,
   Truck,
   Users,
@@ -50,7 +51,10 @@ const navigationGroups: NavGroup[] = [
   },
   {
     label: "Financeiro",
-    items: [{ label: "Despesas e contas", href: "/expenses", icon: WalletCards }],
+    items: [
+      { label: "Despesas e contas", href: "/expenses", icon: WalletCards },
+      { label: "Relatórios", href: "/reports", icon: ChartNoAxesCombined },
+    ],
   },
 ];
 

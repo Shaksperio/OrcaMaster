@@ -100,18 +100,19 @@ export default function Suppliers() {
 
   return (
     <AppLayout>
-      <div className="mx-auto max-w-7xl p-6 md:p-8">
-        <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+      <div className="mx-auto w-full max-w-[1440px] space-y-6 px-4 py-7 sm:px-6 lg:px-8">
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Fornecedores</h1>
-            <p className="mt-2 text-muted-foreground">Mantenha os contatos e dados comerciais dos seus fornecedores.</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">Relacionamento</p>
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground">Fornecedores</h1>
+            <p className="mt-2 text-sm text-muted-foreground">Mantenha contatos e dados comerciais sempre acessíveis.</p>
           </div>
-          <Button onClick={openCreate} className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"><Plus className="h-4 w-4" />Novo fornecedor</Button>
+          <Button onClick={openCreate} className="gap-2 bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"><Plus className="h-4 w-4" />Novo fornecedor</Button>
         </div>
 
-        <Card className="mb-6 border-0 shadow-sm">
+        <Card className="border-border/70 shadow-sm">
           <CardContent className="pt-6">
-            <div className="relative"><Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" /><Input className="pl-10" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Buscar por nome, documento, e-mail ou cidade" /></div>
+            <div className="relative"><Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" /><Input className="h-11 border-border/70 bg-background pl-10 shadow-none focus-visible:ring-primary/30" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Buscar por nome, documento, e-mail ou cidade" /></div>
           </CardContent>
         </Card>
 

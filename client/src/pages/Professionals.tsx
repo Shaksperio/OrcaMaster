@@ -78,16 +78,17 @@ export default function Professionals() {
 
   return (
     <AppLayout>
-      <div className="p-6 md:p-8 max-w-7xl mx-auto">
+      <div className="mx-auto w-full max-w-[1440px] space-y-6 px-4 py-7 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Profissionais</h1>
-            <p className="text-muted-foreground mt-2">Gerencie seus profissionais e prestadores de serviço</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">Equipe</p>
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground">Profissionais</h1>
+            <p className="mt-2 text-sm text-muted-foreground">Organize prestadores, funções e referências de custo.</p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2">
+              <Button className="gap-2 bg-primary text-primary-foreground shadow-sm hover:bg-primary/90">
                 <Plus className="w-4 h-4" />
                 Novo Profissional
               </Button>
